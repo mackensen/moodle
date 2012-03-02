@@ -27,6 +27,7 @@ require_once("../config.php");
 require_once($CFG->dirroot.'/user/profile/lib.php');
 require_once($CFG->dirroot.'/tag/lib.php');
 require_once($CFG->libdir . '/filelib.php');
+require_once($CFG->dirroot.'/user/lib.php');
 
 $id        = optional_param('id', 0, PARAM_INT);   // user id
 $courseid  = optional_param('course', SITEID, PARAM_INT);   // course id (defaults to Site)
@@ -283,36 +284,7 @@ if (!isset($hiddenfields['groups'])) {
 
 // Show other courses they may be in
 if (!isset($hiddenfields['mycourses'])) {
-    if ($mycourses = enrol_get_all_users_courses($user->id, true, NULL, 'visible DESC,sortorder ASC')) {
-        $shown = 0;
-        $courselisting = '';
-        foreach ($mycourses as $mycourse) {
-            if ($mycourse->category) {
-                $ccontext = context_course::instance($mycourse->id);;
-                $cfullname = format_string($mycourse->fullname, true, array('context' => $ccontext));
-                if ($mycourse->id != $course->id){
-                    $class = '';
-                    if ($mycourse->visible == 0) {
-                        if (!has_capability('moodle/course:viewhiddencourses', $ccontext)) {
-                            continue;
-                        }
-                        $class = 'class="dimmed"';
-                    }
-                    $courselisting .= "<a href=\"{$CFG->wwwroot}/user/view.php?id={$user->id}&amp;course={$mycourse->id}\" $class >"
-                        . $cfullname . "</a>, ";
-                } else {
-                    $courselisting .= $cfullname . ", ";
-                    $PAGE->navbar->add($cfullname);
-                }
-            }
-            $shown++;
-            if ($shown >= 20) {
-                $courselisting .= "...";
-                break;
-            }
-        }
-        print_row(get_string('courseprofiles').':', rtrim($courselisting,', '));
-    }
+    user_show_course_listing($user, $course);
 }
 
 if (!isset($hiddenfields['suspended'])) {

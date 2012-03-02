@@ -38,6 +38,7 @@ require_once(dirname(__FILE__) . '/../config.php');
 require_once($CFG->dirroot . '/my/lib.php');
 require_once($CFG->dirroot . '/tag/lib.php');
 require_once($CFG->dirroot . '/user/profile/lib.php');
+require_once($CFG->dirroot . '/user/lib.php');
 require_once($CFG->libdir.'/filelib.php');
 
 $userid = optional_param('id', 0, PARAM_INT);
@@ -316,29 +317,7 @@ profile_display_fields($user->id);
 
 
 if (!isset($hiddenfields['mycourses'])) {
-    if ($mycourses = enrol_get_all_users_courses($user->id, true, NULL, 'visible DESC,sortorder ASC')) {
-        $shown=0;
-        $courselisting = '';
-        foreach ($mycourses as $mycourse) {
-            if ($mycourse->category) {
-                $class = '';
-                if ($mycourse->visible == 0) {
-                    $ccontext = context_course::instance($mycourse->id);
-                    if (!has_capability('moodle/course:viewhiddencourses', $ccontext)) {
-                        continue;
-                    }
-                    $class = 'class="dimmed"';
-                }
-                $courselisting .= "<a href=\"{$CFG->wwwroot}/user/view.php?id={$user->id}&amp;course={$mycourse->id}\" $class >" . format_string($mycourse->fullname) . "</a>, ";
-            }
-            $shown++;
-            if($shown==20) {
-                $courselisting.= "...";
-                break;
-            }
-        }
-        print_row(get_string('courseprofiles').':', rtrim($courselisting,', '));
-    }
+    user_show_course_listing($user);
 }
 if (!isset($hiddenfields['firstaccess'])) {
     if ($user->firstaccess) {

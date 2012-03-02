@@ -485,6 +485,43 @@ function user_get_user_details($user, $course = null, array $userfields = array(
 }
 
 /**
+ * Display the user course listing
+ * @param stdClass $user
+ * @param stdClass $course
+ */
+function user_show_course_listing($user, $course=false) {
+    global $CFG, $PAGE;
+    if ($mycourses = enrol_get_all_users_courses($user->id, true, NULL, 'visible DESC,sortorder ASC')) {
+        $shown = 0;
+        $courselisting = '';
+        foreach ($mycourses as $mycourse) {
+            if ($mycourse->category) {
+                $cfullname = format_string($mycourse->fullname);
+                if (!$course || ($course && ($mycourse->id != $course->id))) {
+                    $class = '';
+                    if ($mycourse->visible == 0) {
+                        if (!has_capability('moodle/course:viewhiddencourses', context_course::instance($mycourse->id))) {
+                            continue;
+                        }
+                        $class = 'class="dimmed"';
+                    }
+                    $courselisting .= "<a href=\"{$CFG->wwwroot}/user/view.php?id={$user->id}&amp;course={$mycourse->id}\" $class >$cfullname</a>, ";
+                } else {
+                    $courselisting .= $cfullname . ", ";
+                    $PAGE->navbar->add($cfullname);
+                }
+            }
+            $shown++;
+            if ($shown == 20) {
+                $courselisting .= "...";
+                break;
+            }
+        }
+        print_row(get_string('courseprofiles').':', rtrim($courselisting,', '));
+    }
+}
+
+/**
  * Return a list of page types
  * @param string $pagetype current page type
  * @param stdClass $parentcontext Block's parent context
