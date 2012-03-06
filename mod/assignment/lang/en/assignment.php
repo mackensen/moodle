@@ -136,6 +136,7 @@ $string['lastgrade'] = 'Last grade';
 $string['late'] = '{$a} late';
 $string['maximumgrade'] = 'Maximum grade';
 $string['maximumsize'] = 'Maximum size';
+$string['maxlength'] = 'There is a maximum submission size of {$a} bytes';
 $string['maxpublishstate'] = 'Maximum visibility for blog entry before due date';
 $string['messageprovider:assignment_updates'] = 'Assignment notifications';
 $string['modulename'] = 'Assignment';

@@ -455,6 +455,22 @@ class mod_assignment_online_edit_form extends moodleform {
 
         $this->set_data($data);
     }
+    
+    function validation($data) {
+        global $DB;
+        $errors = array();
+
+        if ($columns = $DB->get_columns('assignment_submissions')) {
+            if ($columns['data1']->max_length != -1) {
+                $textlib = textlib_get_instance();
+                if ($textlib::strlen($data['text_editor']['text']) > $columns['data1']->max_length) {
+                    $errors['text_editor'] = get_string('maxlength', 'assignment', $maxlength);
+                }
+            } 
+        }
+        
+        return $errors;
+    }
 }
 
 
