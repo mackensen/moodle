@@ -52,6 +52,7 @@ class assignment_online extends assignment_base {
                 $data->sid        = $submission->id;
                 $data->text       = $submission->data1;
                 $data->textformat = $submission->data2;
+                if (empty($data->textformat)) $data->textformat = NULL;
             } else {
                 $data->sid        = NULL;
                 $data->text       = '';
