@@ -131,10 +131,23 @@ class event_form extends moodleform {
 
             $mform->addElement('header', 'repeatevents', get_string('repeatedevents', 'calendar'));
             $mform->addElement('checkbox', 'repeat', get_string('repeatevent', 'calendar'), null, 'repeat');
-            $mform->addElement('text', 'repeats', get_string('repeatweeksl', 'calendar'), 'maxlength="10" size="10"');
+            $mform->addElement('text', 'repeats', get_string('repeat_frequency', 'calendar'), 'maxlength="5" size="5"');
+            $repeat_days_array = array();
+            $repeat_days_array[0] = get_string('sunday', 'calendar');
+            $repeat_days_array[1] = get_string('monday', 'calendar');
+            $repeat_days_array[2] = get_string('tuesday', 'calendar');
+            $repeat_days_array[3] = get_string('wednesday', 'calendar');
+            $repeat_days_array[4] = get_string('thursday', 'calendar');
+            $repeat_days_array[5] = get_string('friday', 'calendar');
+            $repeat_days_array[6] = get_string('saturday', 'calendar');
+            $select = &$mform->addElement('select','repeat_day', get_string('repeat_day', 'calendar'), $repeat_days_array, array());
+            $select->setMultiple(true);
+            $mform->addElement('date_selector', 'repeat_end', get_string('repeat_end','calendar'));
             $mform->setType('repeats', PARAM_INT);
             $mform->setDefault('repeats', 1);
             $mform->disabledIf('repeats','repeat','notchecked');
+            $mform->disabledIf('repeat_day','repeat','notchecked');
+            $mform->disabledIf('repeat_end','repeat','notchecked');
 
         } else if ($repeatedevents) {
 
@@ -179,6 +192,10 @@ class event_form extends moodleform {
             $errors['timedurationuntil'] = get_string('invalidtimedurationuntil', 'calendar');
         } else if ($data['duration'] == 2 && (trim($data['timedurationminutes']) == '' || $data['timedurationminutes'] < 1)) {
             $errors['timedurationminutes'] = get_string('invalidtimedurationminutes', 'calendar');
+        }
+
+        if ($data['repeat_end'] < $data['timestart']) {
+            $errors['repeat_end'] = get_string('invalidtimerepeatend', 'calendar');
         }
 
         return $errors;

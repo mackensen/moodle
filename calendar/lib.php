@@ -2185,25 +2185,49 @@ class calendar_event {
                 $eventcopy = clone($this->properties);
                 unset($eventcopy->id);
 
-                for($i = 1; $i < $eventcopy->repeats; $i++) {
+                // Get original starting time of event offset from date
+                $original_start_time = getdate($eventcopy->timestart);
+                $original_time_offset = $original_start_time["seconds"] + ($original_start_time["minutes"] * MINSECS) + ($original_start_time["hours"] * HOURSECS);
 
-                    $eventcopy->timestart = ($eventcopy->timestart+WEEKSECS) + dst_offset_on($eventcopy->timestart) - dst_offset_on($eventcopy->timestart+WEEKSECS);
+                // Set timer to beginning of the week
+                $advanced_time = strtotime("last sunday", $eventcopy->timestart);
 
-                    // Get the event id for the log record.
-                    $eventcopyid = $DB->insert_record('event', $eventcopy);
+                while ($advanced_time <= ($eventcopy->repeat_end)) {
+                    // Find the selected days in the week
+                    foreach($eventcopy->repeat_day as $key => $day) {
+                        $temp_advanced_time = $advanced_time + (($day - date("w", $advanced_time)) * DAYSECS) + $original_time_offset;
+                        $eventcopy->timestart = $temp_advanced_time + dst_offset_on($eventcopy->timestart) - dst_offset_on($temp_advanced_time);
 
-                    // If the context has been set delete all associated files
-                    if ($usingeditor) {
-                        $fs = get_file_storage();
-                        $files = $fs->get_area_files($this->editorcontext->id, 'calendar', 'event_description', $this->properties->id);
-                        foreach ($files as $file) {
-                            $fs->create_file_from_storedfile(array('itemid'=>$eventcopyid), $file);
+                        // Skip if in the past
+                        if($eventcopy->timestart < $this->properties->timestart) {
+                            continue;
+                        }
+
+                        // Skip if in the future
+                        if($eventcopy->timestart > $eventcopy->repeat_end) {
+                            continue;
+                        }
+
+                        // Do not duplicate the event
+                        if($eventcopy->timestart != $this->properties->timestart) {
+                            $eventcopyid = $DB->insert_record('event', $eventcopy);
+                            $repeatedids[] = $eventcopyid;
+
+                            // If the context has been set delete all associated files
+                            if ($usingeditor) {
+                                $fs = get_file_storage();
+                                $files = $fs->get_area_files($this->editorcontext->id, 'calendar', 'event_description', $this->properties->id);
+                                foreach ($files as $file) {
+                                    $fs->create_file_from_storedfile(array('itemid'=>$eventcopyid), $file);
+                                }
+                            }
+
+                            // Log the event entry.
+                            add_to_log($eventcopy->courseid, 'calendar', 'add', 'event.php?action=edit&amp;id='.$eventcopyid, $eventcopy->name);
                         }
                     }
-
-                    $repeatedids[] = $eventcopyid;
-                    // Log the event entry.
-                    add_to_log($eventcopy->courseid, 'calendar', 'add', 'event.php?action=edit&amp;id='.$eventcopyid, $eventcopy->name);
+                    // Move to the next week
+                    $advanced_time += (WEEKSECS * $this->properties->repeats);
                 }
             }
 
