@@ -30,6 +30,7 @@
     $parent = optional_param('parent', 0, PARAM_INT);        // If set, then display this post and all children.
     $mode   = optional_param('mode', 0, PARAM_INT);          // If set, changes the layout of the thread
     $move   = optional_param('move', 0, PARAM_INT);          // If set, moves this discussion to another forum
+    $pin    = optional_param('pin', -1, PARAM_INT);           // If set, pin or unpin this discussion
     $mark   = optional_param('mark', '', PARAM_ALPHA);       // Used for tracking read posts if user initiated.
     $postid = optional_param('postid', 0, PARAM_INT);        // Used for tracking read posts if user initiated.
 
@@ -115,6 +116,27 @@
         forum_rss_delete_file($forumto);
 
         redirect($return.'&moved=-1&sesskey='.sesskey());
+    }
+
+/// pin or unpin discussion if requested
+    if ($pin !== -1 && confirm_sesskey()) {
+        $return = $CFG->wwwroot.'/mod/forum/discuss.php?d='.$discussion->id;
+
+        require_capability('mod/forum:pindiscussions', $modcontext);
+
+        switch($pin) {
+            case FORUM_DISCUSSION_PINNED:
+                add_to_log($course->id, 'forum', 'pin discussion', "discuss.php?d=$discussion->id", $discussion->id, $cm->id);
+            case FORUM_DISCUSSION_UNPINNED:
+                add_to_log($course->id, 'forum', 'unpin discussion', "discuss.php?d=$discussion->id", $discussion->id, $cm->id);
+                $DB->set_field('forum_discussions', 'pinned', $pin, array('id' => $discussion->id));
+                break;
+            default:
+                echo $OUTPUT->notfication("Invalid value when attempting to pin/unpin discussion");
+                break;
+        }
+
+        redirect($return.'&sesskey='.sesskey());
     }
 
     add_to_log($course->id, 'forum', 'view discussion', "discuss.php?d=$discussion->id", $discussion->id, $cm->id);
@@ -255,6 +277,19 @@
         }
         echo "</div>";
     }
+
+    if (has_capability('mod/forum:pindiscussions', $modcontext)) {
+        if ($discussion->pinned == FORUM_DISCUSSION_PINNED) {
+            $pinlink = FORUM_DISCUSSION_UNPINNED;
+            $pintext = get_string('discussionunpin', 'forum');
+        } else {
+            $pinlink = FORUM_DISCUSSION_PINNED;
+            $pintext = get_string('discussionpin', 'forum');
+        }
+        $button = new single_button(new moodle_url('discuss.php', array('pin' => $pinlink, 'd' => $discussion->id)), $pintext, 'post');
+        echo html_writer::tag('div', $OUTPUT->render($button), array('class' => 'discussioncontrol pindiscussion'));
+    }
+
     echo '<div class="clearfloat">&nbsp;</div>';
     echo "</div>";
 

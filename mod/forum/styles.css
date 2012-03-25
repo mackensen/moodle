@@ -54,6 +54,7 @@
 .path-mod-forum .forumheaderlist td {border-width:1px 0px 0px 1px;border-style:solid;}
 .path-mod-forum .forumheaderlist .picture {width: 35px;}
 .path-mod-forum .forumheaderlist .discussion .starter {vertical-align: middle;}
+.path-mod-forum .forumheaderlist .discussion .pinned {background: transparent url([[pix:forum|pin]]) no-repeat center left};
 .path-mod-forum .forumheaderlist .discussion .lastpost {white-space: nowrap;text-align: right;}
 .path-mod-forum .forumheaderlist .replies,
 .path-mod-forum .forumheaderlist .discussion .author {white-space: nowrap;}
@@ -74,6 +75,7 @@
 #page-mod-forum-discuss .discussioncontrol.displaymode {text-align:center;}
 #page-mod-forum-discuss .discussioncontrol.movediscussion {float:right;width:auto;text-align:right;padding-right:10px;}
 #page-mod-forum-discuss .discussioncontrol.movediscussion .movediscussionoption {}
+#page-mod-forum-discuss .discussioncontrol.pindiscussion {text-align:center;float:left;width:auto;}
 
 /** Styles for view.php **/
 #page-mod-forum-view .forumaddnew {margin-bottom: 20px;}

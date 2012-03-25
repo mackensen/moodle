@@ -44,6 +44,9 @@ define('FORUM_TRACKING_OFF', 0);
 define('FORUM_TRACKING_OPTIONAL', 1);
 define('FORUM_TRACKING_ON', 2);
 
+define('FORUM_DISCUSSION_PINNED', 1);
+define('FORUM_DISCUSSION_UNPINNED', 0);
+
 /// STANDARD FUNCTIONS ///////////////////////////////////////////////////////////
 
 /**
@@ -2626,7 +2629,7 @@ function forum_get_discussions($cm, $forumsort="d.timemodified DESC", $fullpost=
         $umtable  = " LEFT JOIN {user} um ON (d.usermodified = um.id)";
     }
 
-    $sql = "SELECT $postdata, d.name, d.timemodified, d.usermodified, d.groupid, d.timestart, d.timeend,
+    $sql = "SELECT $postdata, d.name, d.timemodified, d.usermodified, d.groupid, d.timestart, d.timeend, d.pinned,
                    u.firstname, u.lastname, u.email, u.picture, u.imagealt $umfields
               FROM {forum_discussions} d
                    JOIN {forum_posts} p ON p.discussion = d.id
@@ -2634,7 +2637,7 @@ function forum_get_discussions($cm, $forumsort="d.timemodified DESC", $fullpost=
                    $umtable
              WHERE d.forum = ? AND p.parent = 0
                    $timelimit $groupselect
-          ORDER BY $forumsort";
+          ORDER BY pinned DESC, $forumsort";
     return $DB->get_records_sql($sql, $params, $limitfrom, $limitnum);
 }
 
@@ -3649,7 +3652,11 @@ function forum_print_discussion_header(&$post, $forum, $group=-1, $datestring=""
     echo '<tr class="discussion r'.$rowcount.'">';
 
     // Topic
-    echo '<td class="topic starter">';
+    $topicclass = 'topic starter';
+    if ($post->pinned == FORUM_DISCUSSION_PINNED) {
+        $topicclass .= ' pinned';
+    }
+    echo '<td class="'.$topicclass.'">';
     echo '<a href="'.$CFG->wwwroot.'/mod/forum/discuss.php?d='.$post->discussion.'">'.$post->subject.'</a>';
     echo "</td>\n";
 
@@ -5429,6 +5436,9 @@ function forum_print_latest_discussions($course, $forum, $maxdiscussions=-1, $di
         }
         // Use discussion name instead of subject of first post
         $discussion->subject = $discussion->name;
+        if ($discussion->pinned == FORUM_DISCUSSION_PINNED) {
+            $discussion->subject = get_string('discussionpinned', 'forum') . $discussion->subject;
+        }
 
         switch ($displayformat) {
             case 'header':
