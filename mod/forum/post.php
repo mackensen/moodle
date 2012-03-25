@@ -859,6 +859,7 @@ if ($mform_post->is_cancelled()) {
         }
         $discussion->timestart = $fromform->timestart;
         $discussion->timeend = $fromform->timeend;
+        $discussion->pinned = FORUM_DISCUSSION_UNPINNED;
 
         $message = '';
         if ($discussion->id = forum_add_discussion($discussion, $mform_post, $message)) {

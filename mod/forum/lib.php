@@ -64,6 +64,9 @@ if (!defined('FORUM_CRON_USER_CACHE')) {
     define('FORUM_CRON_USER_CACHE', 5000);
 }
 
+define('FORUM_DISCUSSION_PINNED', 1);
+define('FORUM_DISCUSSION_UNPINNED', 0);
+
 /// STANDARD FUNCTIONS ///////////////////////////////////////////////////////////
 
 /**
@@ -2688,7 +2691,7 @@ function forum_get_discussions($cm, $forumsort="d.timemodified DESC", $fullpost=
     }
 
     $allnames = get_all_user_name_fields(true, 'u');
-    $sql = "SELECT $postdata, d.name, d.timemodified, d.usermodified, d.groupid, d.timestart, d.timeend, $allnames,
+    $sql = "SELECT $postdata, d.name, d.timemodified, d.usermodified, d.groupid, d.timestart, d.timeend, d.pinned,  $allnames,
                    u.email, u.picture, u.imagealt $umfields
               FROM {forum_discussions} d
                    JOIN {forum_posts} p ON p.discussion = d.id
@@ -2696,7 +2699,7 @@ function forum_get_discussions($cm, $forumsort="d.timemodified DESC", $fullpost=
                    $umtable
              WHERE d.forum = ? AND p.parent = 0
                    $timelimit $groupselect
-          ORDER BY $forumsort";
+          ORDER BY pinned DESC, $forumsort";
     return $DB->get_records_sql($sql, $params, $limitfrom, $limitnum);
 }
 
@@ -2711,6 +2714,8 @@ function forum_get_discussions($cm, $forumsort="d.timemodified DESC", $fullpost=
  * Please note that this does not check whether or not the discussion passed is accessible
  * by the user, it simply uses it as a reference to find the neighbours. On the other hand,
  * the returned neighbours are checked and are accessible to the current user.
+ *
+ * This function ignores whether a discussion is pinned.
  *
  * @param object $cm The CM record.
  * @param object $discussion The discussion record.
@@ -3700,7 +3705,11 @@ function forum_print_discussion_header(&$post, $forum, $group=-1, $datestring=""
     echo '<tr class="discussion r'.$rowcount.'">';
 
     // Topic
-    echo '<td class="topic starter">';
+    $topicclass = 'topic starter';
+    if (FORUM_DISCUSSION_PINNED == $post->pinned) {
+        $topicclass .= ' pinned';
+    }
+    echo '<td class="'.$topicclass.'">';
     echo '<a href="'.$CFG->wwwroot.'/mod/forum/discuss.php?d='.$post->discussion.'">'.$post->subject.'</a>';
     echo "</td>\n";
 
@@ -5479,8 +5488,11 @@ function forum_print_latest_discussions($course, $forum, $maxdiscussions = -1, $
         } else {
             $ownpost=false;
         }
-        // Use discussion name instead of subject of first post
+        // Use discussion name instead of subject of first post.
         $discussion->subject = $discussion->name;
+        if (FORUM_DISCUSSION_PINNED == $discussion->pinned) {
+            $discussion->subject = get_string('discussionpinned', 'forum', $discussion->subject);
+        }
 
         switch ($displayformat) {
             case 'header':
