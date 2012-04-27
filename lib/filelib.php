@@ -2318,7 +2318,9 @@ function fulldelete($location) {
         return false;
     }
     if (is_dir($location)) {
-        $currdir = opendir($location);
+        if (!$currdir = opendir($location)) {
+            return false;
+        }
         while (false !== ($file = readdir($currdir))) {
             if ($file <> ".." && $file <> ".") {
                 $fullfile = $location."/".$file;

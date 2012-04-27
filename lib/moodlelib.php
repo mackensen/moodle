@@ -7979,7 +7979,9 @@ function get_list_of_plugins($directory='mod', $exclude='', $basedir='') {
     }
 
     if (file_exists($basedir) && filetype($basedir) == 'dir') {
-        $dirhandle = opendir($basedir);
+        if (!$dirhandle = opendir($basedir)) {
+            return $plugins;
+        }
         while (false !== ($dir = readdir($dirhandle))) {
             $firstchar = substr($dir, 0, 1);
             if ($firstchar === '.' or $dir === 'CVS' or $dir === '_vti_cnf' or $dir === 'simpletest' or $dir === 'yui' or $dir === 'phpunit' or $dir === $exclude) {
@@ -10172,7 +10174,9 @@ function remove_dir($dir, $content_only=false) {
         // nothing to do
         return true;
     }
-    $handle = opendir($dir);
+    if (!$handle = opendir($dir)) {
+        return false;
+    }
     $result = true;
     while (false!==($item = readdir($handle))) {
         if($item != '.' && $item != '..') {

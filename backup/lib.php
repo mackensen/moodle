@@ -193,7 +193,9 @@
 
         $results = null;
 
-        $dir = opendir($rootdir);
+        if (!$dir = opendir($rootdir)) {
+            return $results;
+        }
         while (false !== ($file=readdir($dir))) {
             if ($file=="." || $file=="..") {
                 continue;
@@ -212,7 +214,9 @@
 
         $results = "";
 
-        $dir = opendir($rootdir);
+        if (!$dir = opendir($rootdir)) {
+            return $results;
+        }
         while (false !== ($file=readdir($dir))) {
             if ($file=="." || $file=="..") {
                 continue;
@@ -293,7 +297,9 @@
             umask(0000);
             $status = mkdir($to_file,$CFG->directorypermissions);
         }
-        $dir = opendir($from_file);
+        if (!$dir = opendir($from_file)) {
+            return $status;
+        }
         while (false !== ($file=readdir($dir))) {
             if ($file=="." || $file=="..") {
                 continue;
