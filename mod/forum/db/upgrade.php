@@ -49,6 +49,13 @@ function xmldb_forum_upgrade($oldversion) {
 
     // Moodle v2.2.0 release upgrade line
     // Put any upgrade step following this
+    if ($oldversion < 2012042700) {
+        // Prune orphaned forum posts
+        $ids = $DB->get_records_sql('SELECT id FROM {forum_posts} WHERE parent != 0 AND parent NOT IN (SELECT id FROM {forum_posts})');
+        $DB->delete_records_list('forum_posts', 'id', array_keys($ids));
+
+        upgrade_mod_savepoint(true, 2012042700, 'forum');
+    }
 
     return true;
 }
