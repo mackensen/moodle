@@ -5744,7 +5744,8 @@ function get_mailer($action='get') {
  * @param string $subject plain text subject line of the email
  * @param string $messagetext plain text version of the message
  * @param string $messagehtml complete html version of the message (optional)
- * @param string $attachment a file on the filesystem, either relative to $CFG->dataroot or a full path to a file in $CFG->tempdir
+ * @param mixed  $attachment a file on the filesystem, either relative to $CFG->dataroot or a full path to a file in $CFG->tempdir,
+ *          or array of files in the format $attachname => $attachment
  * @param string $attachname the name of the file (extension indicates MIME)
  * @param bool $usetrueaddress determines whether $from email address should
  *          be sent out. Will be overruled by user profile setting for maildisplay
@@ -5908,24 +5909,30 @@ function email_to_user($user, $from, $subject, $messagetext, $messagehtml = '', 
         $mail->Body =  "\n$messagetext\n";
     }
 
-    if ($attachment && $attachname) {
-        if (preg_match( "~\\.\\.~" , $attachment )) {
-            // Security check for ".." in dir path.
-            $temprecipients[] = array($supportuser->email, fullname($supportuser, true));
-            $mail->addStringAttachment('Error in attachment.  User attempted to attach a filename with a unsafe name.', 'error.txt', '8bit', 'text/plain');
-        } else {
-            require_once($CFG->libdir.'/filelib.php');
-            $mimetype = mimeinfo('type', $attachname);
+    // Cast a single attachment as an array.
+    if (!is_array($attachment) && ($attachment && $attachname)) {
+        $attachment[$attachname] = $attachment;
+    }
+    if (is_array($attachment) && !empty($attachment)) {
+        foreach($attachment as $attachname => $attachlocation) {
+            if (preg_match( "~\\.\\.~" , $attachment )) {
+                // Security check for ".." in dir path.
+                $temprecipients[] = array($supportuser->email, fullname($supportuser, true));
+                $mail->addStringAttachment('Error in attachment.  User attempted to attach a filename with a unsafe name.', 'error.txt', '8bit', 'text/plain');
+            } else {
+                require_once($CFG->libdir.'/filelib.php');
+                $mimetype = mimeinfo('type', $attachname);
 
-            $attachmentpath = $attachment;
+                $attachmentpath = $attachment;
 
-            // If the attachment is a full path to a file in the tempdir, use it as is,
-            // otherwise assume it is a relative path from the dataroot (for backwards compatibility reasons).
-            if (strpos($attachmentpath, $CFG->tempdir) !== 0) {
-                $attachmentpath = $CFG->dataroot . '/' . $attachmentpath;
+                // If the attachment is a full path to a file in the tempdir, use it as is,
+                // otherwise assume it is a relative path from the dataroot (for backwards compatibility reasons).
+                if (strpos($attachmentpath, $CFG->tempdir) !== 0) {
+                    $attachmentpath = $CFG->dataroot . '/' . $attachmentpath;
+                }
+
+                $mail->addAttachment($attachmentpath, $attachname, 'base64', $mimetype);
             }
-
-            $mail->addAttachment($attachmentpath, $attachname, 'base64', $mimetype);
         }
     }
 
