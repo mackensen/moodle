@@ -376,7 +376,8 @@ function form_filemanager_render($options) {
         $extra = '';
     }
 
-    $maxbytes = display_size(get_max_upload_file_size($CFG->maxbytes, $course_maxbytes, $options->maxbytes));
+    $options->maxbytes = get_max_upload_file_size($CFG->maxbytes, $course_maxbytes, $options->maxbytes);
+    $maxbytes = display_size($options->maxbytes);
     if (empty($options->maxfiles) || $options->maxfiles == -1) {
         $maxsize = get_string('maxfilesize', 'moodle', $maxbytes);
     } else {
