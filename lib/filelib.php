@@ -612,7 +612,7 @@ function file_get_drafarea_files($draftitemid, $filepath = '/') {
                 $item->thumbnail = $OUTPUT->pix_url(file_folder_icon(90))->out(false);
             } else {
                 // do NOT use file browser here!
-                $item->mimetype = get_mimetype_description($file);
+                $item->mimetype = mimeinfo('type', $file->get_filename());
                 if (file_mimetype_in_typegroup($item->mimetype, 'archive')) {
                     $item->type = 'zip';
                 } else {
