@@ -293,6 +293,18 @@ function xmldb_feedback_upgrade($oldversion) {
         /// Launch add field introformat
         $dbman->add_field($table, $field);
 
+        /// Conditionally migrate to html format in intro
+        if ($CFG->texteditors !== 'textarea') {
+            $rs = $DB->get_recordset('feedback', array('introformat' => FORMAT_MOODLE), '', 'id,intro,introformat');
+            foreach($rs as $f) {
+                $f->intro       = text_to_html($f->intro, false, false, true);
+                $f->introformat = FORMAT_HTML;
+                $DB->update_record('feedback', $f);
+                upgrade_set_timeout();
+            }
+            $rs->close();
+        }
+
         /// feedback savepoint reached
         upgrade_mod_savepoint(true, 2009042001, 'feedback');
     }
