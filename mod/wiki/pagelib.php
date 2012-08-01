@@ -105,7 +105,7 @@ abstract class page_wiki {
         $PAGE->set_cm($cm);
         $PAGE->set_activity_record($wiki);
         // the search box
-        $PAGE->set_button(wiki_search_form($cm));
+        $PAGE->set_button(wiki_search_form($cm, $this->subwiki->id));
     }
 
     /**
@@ -840,10 +840,9 @@ class page_wiki_search extends page_wiki {
         global $PAGE, $CFG;
         $PAGE->set_url($CFG->wwwroot . '/mod/wiki/search.php');
     }
+
     function print_content() {
         global $PAGE;
-
-        require_capability('mod/wiki:viewpage', $this->modcontext, NULL, true, 'noviewpagepermission', 'wiki');
 
         echo $this->wikioutput->search_result($this->search_result, $this->subwiki);
     }

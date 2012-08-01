@@ -468,7 +468,7 @@ function wiki_pluginfile($course, $cm, $context, $filearea, $args, $forcedownloa
     }
 }
 
-function wiki_search_form($cm, $search = '') {
+function wiki_search_form($cm, $subwiki, $search = '') {
     global $CFG, $OUTPUT;
 
     $output = '<div class="wikisearch">';
@@ -477,6 +477,7 @@ function wiki_search_form($cm, $search = '') {
     $output .= '<input name="searchstring" type="text" size="18" value="' . s($search, true) . '" alt="search" />';
     $output .= '<input name="courseid" type="hidden" value="' . $cm->course . '" />';
     $output .= '<input name="cmid" type="hidden" value="' . $cm->id . '" />';
+    $output .= '<input name="swid" type="hidden" value="'.$subwiki.'" />"';
     $output .= '<input name="searchwikicontent" type="hidden" value="1" />';
     $output .= '<input value="' . get_string('searchwikis', 'wiki') . '" type="submit" />';
     $output .= '</fieldset>';

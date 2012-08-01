@@ -30,6 +30,7 @@ $search = optional_param('searchstring', null, PARAM_ALPHANUMEXT);
 $courseid = optional_param('courseid', 0, PARAM_INT);
 $searchcontent = optional_param('searchwikicontent', 0, PARAM_INT);
 $cmid = optional_param('cmid', 0, PARAM_INT);
+$swid = optional_param('swid', 0, PARAM_INT);
 
 if (!$course = $DB->get_record('course', array('id' => $courseid))) {
     print_error('invalidcourseid');
@@ -40,15 +41,23 @@ if (!$cm = get_coursemodule_from_id('wiki', $cmid)) {
 
 require_login($course, true, $cm);
 
-// @TODO: Fix call to wiki_get_subwiki_by_group
-if (!$gid = groups_get_activity_group($cm)) {
-    $gid = 0;
-}
-if (!$subwiki = wiki_get_subwiki_by_group($cm->instance, $gid)) {
-    return false;
-}
-if (!$wiki = wiki_get_wiki($subwiki->wikiid)) {
+$context = context_module::instance($cm->id);
+require_capability('mod/wiki:viewpage', $context, NULL, true, 'noviewpagepermission', 'wiki');
+
+$returnurl = new moodle_url('/mod/wiki/view.php', array('id' => $cm->id));
+
+if (!$wiki = wiki_get_wiki($cm->instance)) {
     print_error('incorrectwikiid', 'wiki');
+}
+
+if (empty($swid)) {
+    notice(get_string('nosubwiki', 'wiki'), $returnurl);
+} else if (!$subwiki = wiki_get_subwiki($swid)) {
+    print_error('incorrectsubwikiid', 'wiki');
+}
+
+if (!wiki_user_can_view($subwiki)) {
+    notice(get_string('searcherror', 'wiki'), $returnurl);
 }
 
 $wikipage = new page_wiki_search($wiki, $subwiki, $cm);
