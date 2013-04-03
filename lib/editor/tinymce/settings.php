@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die;
 
 if ($ADMIN->fulltree) {
     $options = array(
+        'None'=>'None - use browser',
         'PSpell'=>'PSpell',
         'GoogleSpell'=>'Google Spell',
         'PSpellShell'=>'PSpellShell');

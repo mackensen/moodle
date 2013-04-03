@@ -97,7 +97,7 @@ class tinymce_texteditor extends texteditor {
         $config = get_config('editor_tinymce');
 
         $spelllanguagelist = empty($config->spelllanguagelist) ? '' : $config->spelllanguagelist;
-        $spellbutton = ($spelllanguagelist === '') ? '' : ',spellchecker';
+        $spellbutton = (($spelllanguagelist === '')||($config->spellengine == 'None')) ? '' : ',spellchecker';
 
         $fontselectlist = empty($config->fontselectlist) ? '' : $config->fontselectlist;
         $fontbutton = ($fontselectlist === '') ? '' : 'fontselect,';
@@ -139,7 +139,7 @@ class tinymce_texteditor extends texteditor {
                     'apply_source_formatting' => true,
                     'remove_script_host' => false,
                     'entity_encoding' => "raw",
-                    'plugins' => "{$xmedia}advimage,lists,table,style,layer,advhr,advlink,emotions,inlinepopups,searchreplace,paste,directionality,fullscreen,moodlenolink,{$xemoticon}{$xdragmath}nonbreaking,contextmenu,insertdatetime,save,iespell,preview,print,noneditable,visualchars,xhtmlxtras,template,pagebreak,spellchecker",
+                    'plugins' => "{$xmedia}advimage,lists,table,style,layer,advhr,advlink,emotions,inlinepopups,searchreplace,paste,directionality,fullscreen,moodlenolink,{$xemoticon}{$xdragmath}nonbreaking,contextmenu,insertdatetime,save,iespell,preview,print,noneditable,visualchars,xhtmlxtras,template,pagebreak{$spellbutton}",
                     'theme_advanced_font_sizes' => "1,2,3,4,5,6,7",
                     'theme_advanced_layout_manager' => "SimpleLayout",
                     'theme_advanced_toolbar_align' => "left",
@@ -158,6 +158,10 @@ class tinymce_texteditor extends texteditor {
                     'spellchecker_rpc_url' => $CFG->httpswwwroot."/lib/editor/tinymce/tiny_mce/$this->version/plugins/spellchecker/rpc.php",
                     'spellchecker_languages' => $spelllanguagelist
                   );
+
+        if (empty($spellbutton)) {
+            $params['gecko_spellcheck'] = true;
+        }
 
         if ($xemoticon) {
             $manager = get_emoticon_manager();
