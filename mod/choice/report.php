@@ -79,11 +79,14 @@
         $myxls = $workbook->add_worksheet($strresponses);
 
     /// Print names of all the fields
-        $myxls->write_string(0,0,get_string("lastname"));
-        $myxls->write_string(0,1,get_string("firstname"));
-        $myxls->write_string(0,2,get_string("idnumber"));
-        $myxls->write_string(0,3,get_string("group"));
-        $myxls->write_string(0,4,get_string("choice","choice"));
+        $userprofilefields = grade_helper::get_user_profile_fields($course->id, true);
+        $i = 0;
+        foreach($userprofilefields as $field) {
+            $myxls->write_string(0, $i, $field->fullname);
+            $i++;
+        }   
+        $myxls->write_string(0,$i,get_string("group"));
+        $myxls->write_string(0,$i+1,get_string("choice","choice"));
 
     /// generate the data for the body of the spreadsheet
         $i=0;
@@ -92,20 +95,22 @@
             foreach ($users as $option => $userid) {
                 $option_text = choice_get_option_text($choice, $option);
                 foreach($userid as $user) {
-                    $myxls->write_string($row,0,$user->lastname);
-                    $myxls->write_string($row,1,$user->firstname);
-                    $studentid=(!empty($user->idnumber) ? $user->idnumber : " ");
-                    $myxls->write_string($row,2,$studentid);
+                    $j=0;
+                    foreach ($userprofilefields as $field) {
+                        $fieldvalue = grade_helper::get_user_field_value($user, $field);
+                        $myxls->write_string($row, $j, $fieldvalue);
+                        $j++;
+                    }
                     $ug2 = '';
                     if ($usergrps = groups_get_all_groups($course->id, $user->id)) {
                         foreach ($usergrps as $ug) {
                             $ug2 = $ug2. $ug->name;
                         }
                     }
-                    $myxls->write_string($row,3,$ug2);
+                    $myxls->write_string($row, $j, $ug2);
 
                     if (isset($option_text)) {
-                        $myxls->write_string($row,4,format_string($option_text,true));
+                        $myxls->write_string($row, $j+1, format_string($option_text,true));
                     }
                     $row++;
                     $pos=4;
@@ -132,11 +137,14 @@
         $myxls = $workbook->add_worksheet($strresponses);
 
     /// Print names of all the fields
-        $myxls->write_string(0,0,get_string("lastname"));
-        $myxls->write_string(0,1,get_string("firstname"));
-        $myxls->write_string(0,2,get_string("idnumber"));
-        $myxls->write_string(0,3,get_string("group"));
-        $myxls->write_string(0,4,get_string("choice","choice"));
+        $userprofilefields = grade_helper::get_user_profile_fields($course->id, true);
+        $i = 0;
+        foreach($userprofilefields as $field) {
+            $myxls->write_string(0, $i, $field->fullname);
+            $i++;
+        }
+        $myxls->write_string(0,$i,get_string("group"));
+        $myxls->write_string(0,$i+1,get_string("choice","choice"));
 
 
     /// generate the data for the body of the spreadsheet
@@ -146,19 +154,21 @@
             foreach ($users as $option => $userid) {
                 $option_text = choice_get_option_text($choice, $option);
                 foreach($userid as $user) {
-                    $myxls->write_string($row,0,$user->lastname);
-                    $myxls->write_string($row,1,$user->firstname);
-                    $studentid=(!empty($user->idnumber) ? $user->idnumber : " ");
-                    $myxls->write_string($row,2,$studentid);
+                    $j=0;
+                    foreach ($userprofilefields as $field) {
+                        $fieldvalue = grade_helper::get_user_field_value($user, $field);
+                        $myxls->write_string($row, $j, $fieldvalue);
+                        $j++;
+                    }
                     $ug2 = '';
                     if ($usergrps = groups_get_all_groups($course->id, $user->id)) {
                         foreach ($usergrps as $ug) {
                             $ug2 = $ug2. $ug->name;
                         }
                     }
-                    $myxls->write_string($row,3,$ug2);
+                    $myxls->write_string($row,$j,$ug2);
                     if (isset($option_text)) {
-                        $myxls->write_string($row,4,format_string($option_text,true));
+                        $myxls->write_string($row,$j+1,format_string($option_text,true));
                     }
                     $row++;
                 }
@@ -180,9 +190,12 @@
         header("Cache-Control: must-revalidate,post-check=0,pre-check=0");
         header("Pragma: public");
 
-        /// Print names of all the fields
+        // Print names of all the fields.
+        $userprofilefields = grade_helper::get_user_profile_fields($course->id, true);
+        foreach($userprofilefields as $field) {
+            echo $field->fullname . "\t";
+        }
 
-        echo get_string("firstname")."\t".get_string("lastname") . "\t". get_string("idnumber") . "\t";
         echo get_string("group"). "\t";
         echo get_string("choice","choice"). "\n";
 
@@ -192,13 +205,10 @@
             foreach ($users as $option => $userid) {
                 $option_text = choice_get_option_text($choice, $option);
                 foreach($userid as $user) {
-                    echo $user->lastname;
-                    echo "\t".$user->firstname;
-                    $studentid = " ";
-                    if (!empty($user->idnumber)) {
-                        $studentid = $user->idnumber;
+                    foreach ($userprofilefields as $field) {
+                        $fieldvalue = grade_helper::get_user_field_value($user, $field);
+                        echo $fieldvalue . "\t";
                     }
-                    echo "\t". $studentid."\t";
                     $ug2 = '';
                     if ($usergrps = groups_get_all_groups($course->id, $user->id)) {
                         foreach ($usergrps as $ug) {

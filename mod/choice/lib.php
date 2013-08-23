@@ -707,7 +707,9 @@ function choice_reset_userdata($data) {
  * @return array
  */
 function choice_get_response_data($choice, $cm, $groupmode) {
-    global $CFG, $USER, $DB;
+    global $CFG, $USER, $DB, $COURSE;
+
+    require_once($CFG->dirroot.'/grade/lib.php');
 
     $context = context_module::instance($cm->id);
 
@@ -723,13 +725,23 @@ function choice_get_response_data($choice, $cm, $groupmode) {
 
 /// First get all the users who have access here
 /// To start with we assume they are all "unanswered" then move them later
-    $allresponses[0] = get_enrolled_users($context, 'mod/choice:choose', $currentgroup, user_picture::fields('u', array('idnumber')));
+    $gui = new graded_users_iterator($COURSE, null, $currentgroup);
+    $gui->require_active_enrolment(true);
+    $gui->allow_user_custom_fields(true);
+    $gui->init();
 
-/// Get all the recorded responses for this choice
+    // Compile user information.
+    $allresponses[0] = array();
+    while ($userdata = $gui->next_user()) {
+        $user = $userdata->user;
+        $allresponses[0][$user->id] = $user;
+    }
+    $gui->close();
+
+    // Get all the recorded responses for this choice.
     $rawresponses = $DB->get_records('choice_answers', array('choiceid' => $choice->id));
 
-/// Use the responses to move users into the correct column
-
+    // Use the responses to move users into the correct column.
     if ($rawresponses) {
         foreach ($rawresponses as $response) {
             if (isset($allresponses[0][$response->userid])) {   // This person is enrolled and in correct group
