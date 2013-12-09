@@ -53,6 +53,15 @@ class mod_forum_mod_form extends moodleform_mod {
         $mform->addElement('select', 'type', get_string('forumtype', 'forum'), $forumtypes);
         $mform->addHelpButton('type', 'forumtype', 'forum');
         $mform->setDefault('type', 'general');
+ 
+        if(isset($CFG->forum_enableanonymousposts) && $CFG->forum_enableanonymousposts) {
+            $options = array();
+            $options[FORUM_ANONYMOUS_NEVER] = get_string('forum:anonno', 'local_lae');
+            $options[FORUM_ANONYMOUS_ALWAYS] = get_string('forum:anonyes', 'local_lae');
+            $options[FORUM_ANONYMOUS_ALLOWED] = get_string('forum:anonoptional', 'local_lae');
+            $mform->addElement('select','anonymous',get_string('forum:allowanonymous', 'local_lae'), $options);
+            $mform->addHelpButton('anonymous', 'forum:allowanonymous', 'local_lae');
+        }
 
         // Attachments and word count.
         $mform->addElement('header', 'attachmentswordcounthdr', get_string('attachmentswordcount', 'forum'));
@@ -74,15 +83,6 @@ class mod_forum_mod_form extends moodleform_mod {
 
         // Subscription and tracking.
         $mform->addElement('header', 'subscriptionandtrackinghdr', get_string('subscriptionandtracking', 'forum'));
-
-        if(isset($CFG->forum_enableanonymousposts) && $CFG->forum_enableanonymousposts) {
-            $options = array();
-            $options[FORUM_ANONYMOUS_NEVER] = get_string('forum:anonno', 'local_lae');
-            $options[FORUM_ANONYMOUS_ALWAYS] = get_string('forum:anonyes', 'local_lae');
-            $options[FORUM_ANONYMOUS_ALLOWED] = get_string('forum:anonoptional', 'local_lae');
-            $mform->addElement('select','anonymous',get_string('forum:allowanonymous', 'local_lae'), $options);
-            $mform->addHelpButton('anonymous', 'forum:allowanonymous', 'local_lae');
-        }
 
         $options = array();
         $options[FORUM_CHOOSESUBSCRIBE] = get_string('subscriptionoptional', 'forum');
