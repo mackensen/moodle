@@ -50,7 +50,11 @@ if ($mform->is_cancelled()) {
     redirect(new moodle_url('/enrol/instances.php', array('id'=>$course->id)));
 
 } else if ($data = $mform->get_data()) {
-    $eid = $enrol->add_instance($course, array('customint1'=>$data->link));
+    foreach ($data->link as $link) {
+        if (!empty($link)) { // Because of formlib selectgroups.
+            $eid = $enrol->add_instance($course, array('customint1' => $link));
+        }
+    }
     enrol_meta_sync($course->id);
     redirect(new moodle_url('/enrol/instances.php', array('id'=>$course->id)));
 }
