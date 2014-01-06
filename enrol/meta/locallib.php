@@ -587,13 +587,8 @@ function enrol_meta_course_search($courseid, $query, $anywhere = true, $limit = 
     $searchsql = '';
     $searchparams = array();
     if (!empty($query)) {
-        $searchanywhere = get_user_preferences('courseselector_searchanywhere', false);
-        if ($searchanywhere) {
-            $query = '%' . $query . '%';
-        } else {
-            $query = $query . '%';
-        }
-        $searchfields = array('c.shortname', 'c.fullname');
+        $query = '%' . $query . '%';
+        $searchfields = array('c.shortname', 'c.fullname', 'c.idnumber');
         for ($i = 0; $i < count($searchfields); $i++) {
             $searchlikes[$i] = $DB->sql_like($searchfields[$i], ":s{$i}", false, false);
             $searchparams["s{$i}"] = $query;

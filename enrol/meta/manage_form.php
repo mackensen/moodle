@@ -67,7 +67,6 @@ class enrol_meta_manage_form extends moodleform {
         $searchgroup[] = &$mform->createElement('submit', $searchselectname.'_submitbutton', get_string('linkselected', 'enrol_meta'));
         $mform->addGroup($searchgroup, 'searchgroup', get_string('search') , array(''), false);
 
-        $mform->addElement('checkbox', 'courseselector_searchanywhere', get_string('searchanywhere', 'enrol_meta'));
 
         $mform->addElement('hidden', 'id', null);
         $mform->setType('id', PARAM_INT);
@@ -77,9 +76,6 @@ class enrol_meta_manage_form extends moodleform {
         $mform->closeHeaderBefore('cancel');
 
         $this->set_data(array('id' => $course->id));
-        user_preference_allow_ajax_update('courseselector_searchanywhere', 'bool');
-        $searchanywhere = get_user_preferences('courseselector_searchanywhere', false);
-        $this->set_data(array('courseselector_searchanywhere' => $searchanywhere));
 
         $PAGE->requires->js_init_call('M.core_enrol.init_course_selector', array($searchselectname, $course->id), true, self::$jsmodule);
         $PAGE->requires->js_init_call('M.core_enrol.init_course_selector_options_tracker', array(), true, self::$jsmodule);
