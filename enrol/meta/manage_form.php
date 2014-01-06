@@ -43,8 +43,6 @@ class enrol_meta_manage_form extends moodleform {
         $mform->addElement('selectgroups', 'remove', get_string('linkedcourses', 'enrol_meta'), $listdata, array('size' => 10, 'multiple' => true));
         $mform->addElement('submit', 'removebutton', get_string('unlinkselected', 'enrol_meta'));
 
-        $mform->addElement('html', html_writer::empty_tag('br'));
-
         $searchselectname = 'link';
         $searchtext = optional_param($searchselectname.'_searchtext', '', PARAM_TEXT);
 
@@ -56,6 +54,7 @@ class enrol_meta_manage_form extends moodleform {
         $listdata = array($result->results->label => $display);
 
         $mform->addElement('selectgroups', $searchselectname, '', $listdata, array('size' => 10, 'multiple' => true));
+        $mform->addElement('submit', $searchselectname.'_submitbutton', get_string('linkselected', 'enrol_meta'));
 
         $searchgroup = array();
         $searchgroup[] = &$mform->createElement('text', $searchselectname.'_searchtext');
@@ -64,7 +63,6 @@ class enrol_meta_manage_form extends moodleform {
         $mform->registerNoSubmitButton($searchselectname.'_searchbutton');
         $searchgroup[] = &$mform->createElement('submit', $searchselectname.'_clearbutton', get_string('clear'));
         $mform->registerNoSubmitButton($searchselectname.'_clearbutton');
-        $searchgroup[] = &$mform->createElement('submit', $searchselectname.'_submitbutton', get_string('linkselected', 'enrol_meta'));
         $mform->addGroup($searchgroup, 'searchgroup', get_string('search') , array(''), false);
 
 
@@ -78,7 +76,6 @@ class enrol_meta_manage_form extends moodleform {
         $this->set_data(array('id' => $course->id));
 
         $PAGE->requires->js_init_call('M.core_enrol.init_course_selector', array($searchselectname, $course->id), true, self::$jsmodule);
-        $PAGE->requires->js_init_call('M.core_enrol.init_course_selector_options_tracker', array(), true, self::$jsmodule);
     }
 
     function validation($data, $files) {
