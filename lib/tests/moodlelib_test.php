@@ -1298,6 +1298,12 @@ class core_moodlelib_testcase extends advanced_testcase {
                 'expectedoutput' => 'Friday, 1 July 2011, 7:00 AM'
             ),
             array(
+                'time' => '1394330400',
+                'usertimezone' => '99',
+                'timezone' => 'America/New_York',
+                'expectedoutput' => 'Saturday, 8 March 2014, 9:00 PM'
+            ), 
+            array(
                 'time' => '1309514400',
                 'usertimezone' => 'America/Moncton',
                 'timezone' => 'America/Moncton', // Dst offset and timezone offset.
