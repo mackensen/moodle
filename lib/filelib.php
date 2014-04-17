@@ -843,6 +843,40 @@ function file_remove_editor_orphaned_files($editor) {
 }
 
 /**
+ * Finds all draft areas used in a textarea. If a user copies and pastes content from another draft area it's possible
+ * for a single textarea to reference multiple draft areas.
+ *
+ * @category files
+ * @global stdClass $CFG
+ * @param int $draftitemid the id of the primary draft area.
+ * @param int $usercontextid the user's context id.
+ * @param string $text some html content that needs to have embedded links rewritten
+ *      to the @@PLUGINFILE@@ form for saving in the database.
+ * @param bool $forcehttps force https urls.
+ * @return array of draft area ids
+ **/
+function file_find_draft_areas($draftitemid, $usercontextid, $text, $forcehttps=false) {
+    global $CFG;
+
+    $draftitemid = array($draftitemid);
+
+    $wwwroot = $CFG->wwwroot;
+    if ($forcehttps) {
+        $wwwroot = str_replace('http://', 'https://', $wwwroot);
+    }
+
+    if (!is_null($text)) {
+        $matches = array();
+        preg_match_all('/' . preg_quote($wwwroot, '/') . '\/draftfile\.php\/' . $usercontextid . '\/user\/draft\/([0-9]*)/', $text, $matches);
+        if (!empty($matches[1])) {
+            return array_merge($draftitemid, $matches[1]);
+        }
+    }
+
+    return $draftitemid;
+}
+
+/**
  * Saves files from a draft file area to a real one (merging the list of files).
  * Can rewrite URLs in some content at the same time if desired.
  *
@@ -894,8 +928,13 @@ function file_save_draft_area_files($draftitemid, $contextid, $component, $filea
         return null;
     }
 
-    $draftfiles = $fs->get_area_files($usercontext->id, 'user', 'draft', $draftitemid, 'id');
-    $oldfiles   = $fs->get_area_files($contextid, $component, $filearea, $itemid, 'id');
+    // If a user is copying and pasting there may be other draftfile areas.
+    $draftfiles = array();
+    $draftitemid = file_find_draft_areas($draftitemid, $usercontext->id, $text, $forcehttps);
+    foreach ($draftitemid as $dii) {
+        $draftfiles = array_merge($draftfiles, $fs->get_area_files($usercontext->id, 'user', 'draft', $dii, 'id'));
+    }
+    $oldfiles = $fs->get_area_files($contextid, $component, $filearea, $itemid, 'id');
 
     // One file in filearea means it is empty (it has only top-level directory '.').
     if (count($draftfiles) > 1 || count($oldfiles) > 1) {
@@ -1060,7 +1099,7 @@ function file_save_draft_area_files($draftitemid, $contextid, $component, $filea
  *
  * @category files
  * @param string $text the content to process.
- * @param int $draftitemid the draft file area the content was using.
+ * @param mixed $draftitemid the draft file area(s) the content was using.
  * @param bool $forcehttps whether the content contains https URLs. Default false.
  * @return string the processed content.
  */
@@ -1074,19 +1113,28 @@ function file_rewrite_urls_to_pluginfile($text, $draftitemid, $forcehttps = fals
         $wwwroot = str_replace('http://', 'https://', $wwwroot);
     }
 
+    // We may have multiple draft file areas.
+    if (!is_array($draftitemid)) {
+        $draftitemid = file_find_draft_areas($draftitemid, $usercontext->id, $text, $forcehttps);
+    }
+
     // relink embedded files if text submitted - no absolute links allowed in database!
-    $text = str_ireplace("$wwwroot/draftfile.php/$usercontext->id/user/draft/$draftitemid/", '@@PLUGINFILE@@/', $text);
+    foreach($draftitemid as $dii) {
+        $text = str_ireplace("$wwwroot/draftfile.php/$usercontext->id/user/draft/$dii/", '@@PLUGINFILE@@/', $text);
+    }
 
     if (strpos($text, 'draftfile.php?file=') !== false) {
-        $matches = array();
-        preg_match_all("!$wwwroot/draftfile.php\?file=%2F{$usercontext->id}%2Fuser%2Fdraft%2F{$draftitemid}%2F[^'\",&<>|`\s:\\\\]+!iu", $text, $matches);
-        if ($matches) {
-            foreach ($matches[0] as $match) {
-                $replace = str_ireplace('%2F', '/', $match);
-                $text = str_replace($match, $replace, $text);
+        foreach ($draftitemid as $dii) {
+            $matches = array();
+            preg_match_all("!$wwwroot/draftfile.php\?file=%2F{$usercontext->id}%2Fuser%2Fdraft%2F{$dii}%2F[^'\",&<>|`\s:\\\\]+!iu", $text, $matches);
+            if ($matches) {
+                foreach ($matches[0] as $match) {
+                    $replace = str_ireplace('%2F', '/', $match);
+                    $text = str_replace($match, $replace, $text);
+                }
             }
+            $text = str_ireplace("$wwwroot/draftfile.php?file=/$usercontext->id/user/draft/$dii/", '@@PLUGINFILE@@/', $text);
         }
-        $text = str_ireplace("$wwwroot/draftfile.php?file=/$usercontext->id/user/draft/$draftitemid/", '@@PLUGINFILE@@/', $text);
     }
 
     return $text;
