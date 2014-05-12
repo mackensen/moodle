@@ -15,10 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Defines the user profile viewed event.
+ * The user profile viewed event.
  *
  * @package    core
- * @since      Moodle 2.6
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,6 +26,22 @@ namespace core\event;
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * The user profile viewed event class.
+ *
+ * @property-read array $other {
+ *      Extra information about event.
+ *
+ *      - int courseid: id of course.
+ *      - string courseshortname: short name of course.
+ *      - string coursefullname: fullname of course.
+ * }
+ *
+ * @package    core
+ * @since      Moodle 2.6
+ * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class user_profile_viewed extends base {
 
     /**
@@ -35,7 +50,7 @@ class user_profile_viewed extends base {
     protected function init() {
         $this->data['objecttable'] = 'user';
         $this->data['crud'] = 'r';
-        $this->data['level'] = self::LEVEL_OTHER;
+        $this->data['edulevel'] = self::LEVEL_OTHER;
     }
 
     /**
@@ -53,8 +68,8 @@ class user_profile_viewed extends base {
      * @return string
      */
     public function get_description() {
-        return 'User ' . $this->userid . ' viewed the profile for user ' . $this->relateduserid . ' in the course ' .
-            $this->other['courseid'];
+        return "The user with id '$this->userid' viewed the profile for the user with id '$this->relateduserid' in the course " .
+            "with id '{$this->other['courseid']}'.";
     }
 
     /**

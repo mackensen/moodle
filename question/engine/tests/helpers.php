@@ -116,7 +116,6 @@ abstract class question_test_helper {
         $dataforformconstructor->formoptions = new stdClass();
         $dataforformconstructor->formoptions->canmove = true;
         $dataforformconstructor->formoptions->cansaveasnew = true;
-        $dataforformconstructor->formoptions->movecontext = false;
         $dataforformconstructor->formoptions->canedit = true;
         $dataforformconstructor->formoptions->repeatelements = true;
         $qtype = question_bank::get_qtype($questiondata->qtype);
@@ -404,8 +403,12 @@ class test_question_maker {
         $essay->qtype = question_bank::get_qtype('essay');
 
         $essay->responseformat = 'editor';
+        $essay->responserequired = 1;
         $essay->responsefieldlines = 15;
         $essay->attachments = 0;
+        $essay->attachmentsrequired = 0;
+        $essay->responsetemplate = '';
+        $essay->responsetemplateformat = FORMAT_MOODLE;
         $essay->graderinfo = '';
         $essay->graderinfoformat = FORMAT_MOODLE;
 

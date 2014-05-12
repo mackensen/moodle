@@ -525,6 +525,10 @@ table.quizreviewsummary td.cell {
     font-weight: normal;
 }
 
+#page-mod-quiz-report tr.lastrowforattempt {
+    border-bottom: lightgrey solid 0.2em;
+}
+
 /** Mod quiz edit **/
 #page-mod-quiz-edit h2.main {
     display: inline;
@@ -532,10 +536,10 @@ table.quizreviewsummary td.cell {
     clear: left;
 }
 
-#categoryquestions .r1 {
+#categoryquestions > tbody > tr:nth-of-type(even) {
     background: #e4e4e4;
 }
-#categoryquestions .r1.highlight {
+#categoryquestions > tbody > tr:nth-of-type(even).highlight {
     background-color: #AAFFAA;
 }
 #categoryquestions .header {

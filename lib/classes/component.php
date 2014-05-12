@@ -312,6 +312,7 @@ $cache = '.var_export($cache, true).';
             'access'      => null,
             'admin'       => $CFG->dirroot.'/'.$CFG->admin,
             'auth'        => $CFG->dirroot.'/auth',
+            'availability' => $CFG->dirroot . '/availability',
             'backup'      => $CFG->dirroot.'/backup/util/ui',
             'badges'      => $CFG->dirroot.'/badges',
             'block'       => $CFG->dirroot.'/blocks',
@@ -320,7 +321,6 @@ $cache = '.var_export($cache, true).';
             'cache'       => $CFG->dirroot.'/cache',
             'calendar'    => $CFG->dirroot.'/calendar',
             'cohort'      => $CFG->dirroot.'/cohort',
-            'condition'   => null,
             'completion'  => null,
             'countries'   => null,
             'course'      => $CFG->dirroot.'/course',
@@ -386,6 +386,7 @@ $cache = '.var_export($cache, true).';
         global $CFG;
 
         $types = array(
+            'availability'  => $CFG->dirroot . '/availability/condition',
             'qtype'         => $CFG->dirroot.'/question/type',
             'mod'           => $CFG->dirroot.'/mod',
             'auth'          => $CFG->dirroot.'/auth',
@@ -1012,5 +1013,15 @@ $cache = '.var_export($cache, true).';
             }
             opcache_invalidate($file, true);
         }
+    }
+
+    /**
+     * Return true if subsystemname is core subsystem.
+     *
+     * @param string $subsystemname name of the subsystem.
+     * @return bool true if core subsystem.
+     */
+    public static function is_core_subsystem($subsystemname) {
+        return isset(self::$subsystems[$subsystemname]);
     }
 }

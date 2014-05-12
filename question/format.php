@@ -290,7 +290,7 @@ class qformat_default {
         global $USER, $CFG, $DB, $OUTPUT;
 
         // reset the timer in case file upload was slow
-        set_time_limit(0);
+        core_php_time_limit::raise();
 
         // STAGE 1: Parse the file
         echo $OUTPUT->notification(get_string('parsingquestions', 'question'), 'notifysuccess');
@@ -359,7 +359,7 @@ class qformat_default {
         foreach ($questions as $question) {   // Process and store each question
 
             // reset the php timeout
-            set_time_limit(0);
+            core_php_time_limit::raise();
 
             // check for category modifiers
             if ($question->qtype == 'category') {
@@ -424,7 +424,7 @@ class qformat_default {
 
             if (!empty($CFG->usetags) && isset($question->tags)) {
                 require_once($CFG->dirroot . '/tag/lib.php');
-                tag_set('question', $question->id, $question->tags);
+                tag_set('question', $question->id, $question->tags, 'core_question', $question->context);
             }
 
             if (!empty($result->error)) {

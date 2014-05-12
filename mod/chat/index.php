@@ -17,7 +17,8 @@ $PAGE->set_pagelayout('incourse');
 $params = array(
     'context' => context_course::instance($id)
 );
-$event = \mod_chat\event\instances_list_viewed::create($params);
+$event = \mod_chat\event\course_module_instance_list_viewed::create($params);
+$event->add_record_snapshot('course', $course);
 $event->trigger();
 
 /// Get all required strings

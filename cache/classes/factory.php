@@ -274,6 +274,7 @@ class cache_factory {
         }
         /* @var cache_store $store */
         $store = $this->stores[$name];
+        // We check are_requirements_met although we expect is_ready is going to check as well.
         if (!$store::are_requirements_met() || !$store->is_ready() || !$store->is_supported_mode($definition->get_mode())) {
             return false;
         }

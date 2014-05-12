@@ -1,6 +1,27 @@
 This files describes API changes in /theme/* themes,
 information provided here is intended especially for theme designer.
 
+=== 2.7 ===
+
+* CSS related functions in theme class and csslib.php were refactored, addons that are
+  using this private API need to be updated
+* Please update your css to use 'tr:nth-of-type(odd/even)' instead of '.ro/.r1' to apply tr specific css for various tables.
+  These classes are deprecated now and will be removed in Moodle 2.9. This has done to better support styling tables that will be altered by JavaScript.
+  Here is an example to update your css:
+  Old code:
+    table.generaltable .r0 {background-color: #F0F0F0;}
+    table.generaltable .r1 {background-color: #F0F0F0;}
+  New code:
+    table.generaltable > tbody > tr:nth-of-type(odd) {background-color: #F0F0F0;}
+    table.generaltable > tbody > tr:nth-of-type(even) {background-color: #F0F0F0;}
+
+Removed themes:
+* afterburner, anomaly, arialist, binarius, boxxie, brick, formal_white, formfactor, fusion, leatherbound,
+  magazine, nimble, nonzero, overlay, serenity, sky_high, splash, standard and standardold have been removed.
+  During the upgrade process the themes will be uninstalled and all their settings will be deleted.
+  If you wish to keep your theme and its settings, download it from moodle.org and put it back in
+  the theme/ directory BEFORE UPGRADING.
+
 === 2.6 ===
 
 Removed themes:

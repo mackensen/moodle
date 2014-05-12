@@ -99,6 +99,9 @@
         }
     }
 
+    .fp-formset div {
+        height: auto;
+    }
 }
 
 @media (min-width: 1200px) {
@@ -162,7 +165,8 @@
     .fluid-span (@columns) {
         .fluid-span-full(@columns, @fluidGridColumnWidth1200, @fluidGridGutterWidth1200);
     }
-    .empty-region-side-post.used-region-side-pre { // Post region is empty and pre region is in use.
+    .empty-region-side-post.used-region-side-pre, // Post region is empty and pre region is in use.
+    .jsenabled.docked-region-side-post.used-region-side-pre { // All post blocks docked and pre region is in use.
         #region-main.span8 {
             /** increase the span size by 1 **/
             .fluid-span(9);
@@ -199,7 +203,8 @@
     .fluid-span (@columns) {
         .fluid-span-full(@columns, @fluidGridColumnWidth768, @fluidGridGutterWidth768);
     }
-    .empty-region-side-post.used-region-side-pre { // Post region is empty and pre region is in use.
+    .empty-region-side-post.used-region-side-pre, // Post region is empty and pre region is in use.
+    .jsenabled.docked-region-side-post.used-region-side-pre { // All post blocks docked and pre region is in use.
         #region-main.span8 {
             /** increase the span size by 1 **/
             .fluid-span(9);
@@ -503,7 +508,8 @@
     // cases when we have content in the side-pre blockregion but not in the
     // side-post blockregion as there are more specific selectors in
     // core.less which take precedence which break responsiveness.
-    .empty-region-side-post.used-region-side-pre { // Post region is empty and pre region is in use.
+    .empty-region-side-post.used-region-side-pre, // Post region is empty and pre region is in use.
+    .jsenabled.docked-region-side-post.used-region-side-pre { // All post blocks docked and pre region is in use.
         #block-region-side-pre.span4,
         #region-main.span8 {
             .fluid-span(12);
@@ -549,7 +555,7 @@
     }
     // CSS for the course management pages.
     #course-category-listings.columns-3 {
-        background-color:transparent;
+        background-color: @tableBackground;
         border:0;
 
         #category-listing,
@@ -572,7 +578,7 @@
 @media (max-width: 1199px) {
     // CSS for the course management pages.
     #course-category-listings.columns-3 {
-        background-color:transparent;
+        background-color: @tableBackground;
         border:0;
         #category-listing,
         #course-listing,
@@ -603,4 +609,27 @@
    #page-mod-forum-discuss.dir-rtl .discussioncontrols {
        text-align: left;
    }
+}
+
+
+// File Picker.
+@media (max-width: 768px) {
+    .fp-forminset .control-group .controls {
+        margin-left: 0;
+    }
+    .dir-rtl .fp-formset .control-group {
+        label.control-label {
+            text-align: right;
+            float: none;
+        }
+    }
+    .dir-rtl .fp-forminset .control-group {
+        label.control-label {
+            text-align: right;
+            float: none;
+        }
+        .controls {
+            margin-right: 0;
+        }
+    }
 }

@@ -17,10 +17,9 @@
 /**
  * Admin settings class for the quiz review opitions.
  *
- * @package    mod
- * @subpackage quiz
- * @copyright  2008 Tim Hunt
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_quiz
+ * @copyright 2008 Tim Hunt
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 

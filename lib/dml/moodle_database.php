@@ -938,6 +938,54 @@ abstract class moodle_database {
     }
 
     /**
+     * Ensures that limit params are numeric and positive integers, to be passed to the database.
+     * We explicitly treat null, '' and -1 as 0 in order to provide compatibility with how limit
+     * values have been passed historically.
+     *
+     * @param int $limitfrom Where to start results from
+     * @param int $limitnum How many results to return
+     * @return array Normalised limit params in array($limitfrom, $limitnum)
+     */
+    protected function normalise_limit_from_num($limitfrom, $limitnum) {
+        global $CFG;
+
+        // We explicilty treat these cases as 0.
+        if ($limitfrom === null || $limitfrom === '' || $limitfrom === -1) {
+            $limitfrom = 0;
+        }
+        if ($limitnum === null || $limitnum === '' || $limitnum === -1) {
+            $limitnum = 0;
+        }
+
+        if ($CFG->debugdeveloper) {
+            if (!is_numeric($limitfrom)) {
+                $strvalue = var_export($limitfrom, true);
+                debugging("Non-numeric limitfrom parameter detected: $strvalue, did you pass the correct arguments?",
+                    DEBUG_DEVELOPER);
+            } else if ($limitfrom < 0) {
+                debugging("Negative limitfrom parameter detected: $limitfrom, did you pass the correct arguments?",
+                    DEBUG_DEVELOPER);
+            }
+
+            if (!is_numeric($limitnum)) {
+                $strvalue = var_export($limitnum, true);
+                debugging("Non-numeric limitnum parameter detected: $strvalue, did you pass the correct arguments?",
+                    DEBUG_DEVELOPER);
+            } else if ($limitnum < 0) {
+                debugging("Negative limitnum parameter detected: $limitnum, did you pass the correct arguments?",
+                    DEBUG_DEVELOPER);
+            }
+        }
+
+        $limitfrom = (int)$limitfrom;
+        $limitnum  = (int)$limitnum;
+        $limitfrom = max(0, $limitfrom);
+        $limitnum  = max(0, $limitnum);
+
+        return array($limitfrom, $limitnum);
+    }
+
+    /**
      * Return tables in database WITHOUT current prefix.
      * @param bool $usecache if true, returns list of cached tables.
      * @return array of table names in lowercase and without prefix
@@ -1044,9 +1092,9 @@ abstract class moodle_database {
 
     /**
      * Do NOT use in code, this is for use by database_manager only!
-     * @param string $sql query
+     * @param string|array $sql query or array of queries
      * @return bool true
-     * @throws dml_exception A DML specific exception is thrown for any errors.
+     * @throws ddl_change_structure_exception A DDL specific exception is thrown for any errors.
      */
     public abstract function change_database_structure($sql);
 
@@ -1559,6 +1607,45 @@ abstract class moodle_database {
      * @throws dml_exception A DML specific exception is thrown for any errors.
      */
     public abstract function insert_record($table, $dataobject, $returnid=true, $bulk=false);
+
+    /**
+     * Insert multiple records into database as fast as possible.
+     *
+     * Order of inserts is maintained, but the operation is not atomic,
+     * use transactions if necessary.
+     *
+     * This method is intended for inserting of large number of small objects,
+     * do not use for huge objects with text or binary fields.
+     *
+     * @since 2.7
+     *
+     * @param string $table  The database table to be inserted into
+     * @param array|Traversable $dataobjects list of objects to be inserted, must be compatible with foreach
+     * @return void does not return new record ids
+     *
+     * @throws coding_exception if data objects have different structure
+     * @throws dml_exception A DML specific exception is thrown for any errors.
+     */
+    public function insert_records($table, $dataobjects) {
+        if (!is_array($dataobjects) and !($dataobjects instanceof Traversable)) {
+            throw new coding_exception('insert_records() passed non-traversable object');
+        }
+
+        $fields = null;
+        // Note: override in driver if there is a faster way.
+        foreach ($dataobjects as $dataobject) {
+            if (!is_array($dataobject) and !is_object($dataobject)) {
+                throw new coding_exception('insert_records() passed invalid record object');
+            }
+            $dataobject = (array)$dataobject;
+            if ($fields === null) {
+                $fields = array_keys($dataobject);
+            } else if ($fields !== array_keys($dataobject)) {
+                throw new coding_exception('All dataobjects in insert_records() must have the same structure!');
+            }
+            $this->insert_record($table, $dataobject, false);
+        }
+    }
 
     /**
      * Import a record into a table, id field is required.

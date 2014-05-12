@@ -28,18 +28,6 @@ $currentorg = optional_param('currentorg', '', PARAM_RAW); // selected organizat
 $newattempt = optional_param('newattempt', 'off', PARAM_ALPHA); // the user request to start a new attempt.
 $displaymode = optional_param('display', '', PARAM_ALPHA);
 
-// IE 9 workaround for Flash bug: MDL-29213
-// Note that it's not clear if appending the meta tag via $CFG->additionalhtmlhead
-// is correct at all, both because of the mechanism itself and because MS says
-// the tag must be used *before* including other stuff. See the issue for more info.
-// TODO: Once we implement some way to inject meta tags, change this to use it. MDL-30039
-if (strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE 9') !== false) {
-    if (!isset($CFG->additionalhtmlhead)) { //check to make sure set first - that way we can use .=
-        $CFG->additionalhtmlhead = '';
-    }
-    $CFG->additionalhtmlhead .= '<meta http-equiv="X-UA-Compatible" content="IE=8" />';
-}
-
 if (!empty($id)) {
     if (! $cm = get_coursemodule_from_id('scorm', $id)) {
         print_error('invalidcoursemodule');
@@ -102,7 +90,7 @@ $strexit = get_string('exitactivity', 'scorm');
 $coursecontext = context_course::instance($course->id);
 
 if ($displaymode == 'popup') {
-    $PAGE->set_pagelayout('popup');
+    $PAGE->set_pagelayout('embedded');
 } else {
     $shortname = format_string($course->shortname, true, array('context' => $coursecontext));
     $pagetitle = strip_tags("$shortname: ".format_string($scorm->name));
@@ -148,9 +136,6 @@ if ($scorm->lastattemptlock == 1 && $result->attemptleft == 0) {
     exit;
 }
 
-add_to_log($course->id, 'scorm', 'view', "player.php?cm=$cm->id&scoid=$sco->id", "$scorm->id", $cm->id);
-
-
 $scoidstr = '&amp;scoid='.$sco->id;
 $modestr = '&amp;mode='.$mode;
 
@@ -181,7 +166,7 @@ $PAGE->requires->data_for_js('scormplayerdata', Array('launch' => false,
 $PAGE->requires->js('/mod/scorm/request.js', true);
 $PAGE->requires->js('/lib/cookies.js', true);
 echo $OUTPUT->header();
-if ($displaymode !== 'popup') {
+if (!empty($scorm->displayactivityname)) {
     echo $OUTPUT->heading(format_string($scorm->name));
 }
 
@@ -274,4 +259,10 @@ if (empty($scorm->popup) || $displaymode == 'popup') {
 if (!empty($forcejs)) {
     echo $OUTPUT->box(get_string("forcejavascriptmessage", "scorm"), "generalbox boxaligncenter forcejavascriptmessage");
 }
+
+// Add the checknet system to keep checking for a connection.
+$PAGE->requires->string_for_js('networkdropped', 'mod_scorm');
+$PAGE->requires->yui_module('moodle-core-checknet', 'M.core.checknet.init', array(array(
+    'message' => array('networkdropped', 'mod_scorm'),
+)));
 echo $OUTPUT->footer();

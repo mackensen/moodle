@@ -75,7 +75,8 @@ class behat_permissions extends behat_base {
         $roleoption = $this->find('xpath', '//select[@name="roleid"]/option[contains(.,"' . $this->escape($rolename) . '")]');
 
         return array(
-            new Given('I select "' . $this->escape($roleoption->getText()) . '" from "' . get_string('advancedoverride', 'role') . '"'),
+            new Given('I set the field "' . get_string('advancedoverride', 'role') .
+                '" to "' . $this->escape($roleoption->getText()) . '"'),
             new Given('I fill the capabilities form with the following permissions:', $table),
             new Given('I press "' . get_string('savechanges') . '"')
         );
@@ -94,12 +95,6 @@ class behat_permissions extends behat_base {
         try {
             $advancedtoggle = $this->find_button(get_string('showadvanced', 'form'));
             if ($advancedtoggle) {
-
-                // As we are interacting with a moodle form we wait for the editor to be ready
-                // otherwise we may have problems when setting values on it or clicking on elements
-                // as the position of the elements will change once the editor is loaded.
-                $this->ensure_editors_are_loaded();
-
                 $advancedtoggle->click();
 
                 // Wait for the page to load.
@@ -135,7 +130,7 @@ class behat_permissions extends behat_base {
             // Converting from permission to constant value.
             $permissionvalue = constant($permissionconstant);
 
-            // Here we wait for the element to appear and exception if it does not exists.
+            // Here we wait for the element to appear and exception if it does not exist.
             $radio = $this->find('xpath', '//input[@name="' . $capability . '" and @value="' . $permissionvalue . '"]');
             $radio->click();
         }

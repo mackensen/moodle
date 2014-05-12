@@ -299,29 +299,6 @@ class behat_general extends behat_base {
     }
 
     /**
-     * Click on the specified element inside a table row containing the specified text.
-     *
-     * @Given /^I click on "(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>(?:[^"]|\\")*)" in the "(?P<row_text_string>(?:[^"]|\\")*)" table row$/
-     * @throws ElementNotFoundException
-     * @param string $element Element we look for
-     * @param string $selectortype The type of what we look for
-     * @param string $tablerowtext The table row text
-     */
-    public function i_click_on_in_the_table_row($element, $selectortype, $tablerowtext) {
-
-        // The table row container.
-        $nocontainerexception = new ElementNotFoundException($this->getSession(), '"' . $tablerowtext . '" row text ');
-        $tablerowtext = $this->getSession()->getSelectorsHandler()->xpathLiteral($tablerowtext);
-        $rownode = $this->find('xpath', "//tr[contains(., $tablerowtext)]", $nocontainerexception);
-
-        // Looking for the element DOM node inside the specified row.
-        list($selector, $locator) = $this->transform_selector($selectortype, $element);
-        $elementnode = $this->find($selector, $locator, false, $rownode);
-        $this->ensure_node_is_visible($elementnode);
-        $elementnode->click();
-    }
-
-    /**
      * Drags and drops the specified element to the specified container. This step does not work in all the browsers, consider it experimental.
      *
      * The steps definitions calling this step as part of them should
@@ -788,32 +765,14 @@ class behat_general extends behat_base {
     /**
      * Checks the provided element and selector type exists in the current page.
      *
-     * This method has been introduced in 2.7 and replaces self::should_exists(),
-     * it has been added here to make backports easier and to help 3rd parties working on new
-     * scenarios so they don't need to update their scenarios when they upgrade to 2.7.
+     * This step is for advanced users, use it if you don't find anything else suitable for what you need.
      *
      * @Then /^"(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" should exist$/
-     *
-     * @param string $element The locator of the specified selector
-     * @param string $selectortype The selector type
-     */
-    public function should_exist($element, $selectortype) {
-        // Forwarding it.
-        $this->should_exists($element, $selectortype);
-    }
-
-    /**
-     * Checks the provided element and selector type exists in the current page. This step will be deprecated in Moodle 2.7 in favour of '"ELEMENT_STRING" "SELECTOR_STRING" should exist'.
-     *
-     * This step is for advanced users, use it if you don't find
-     * anything else suitable for what you need.
-     *
-     * @Then /^"(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" should exists$/
      * @throws ElementNotFoundException Thrown by behat_base::find
      * @param string $element The locator of the specified selector
      * @param string $selectortype The selector type
      */
-    public function should_exists($element, $selectortype) {
+    public function should_exist($element, $selectortype) {
 
         // Getting Mink selector and locator.
         list($selector, $locator) = $this->transform_selector($selectortype, $element);
@@ -825,33 +784,14 @@ class behat_general extends behat_base {
     /**
      * Checks that the provided element and selector type not exists in the current page.
      *
-     * This step is for advanced users, use it if you don't find
-     * anything else suitable for what you need.
-     *
-     * This method has been introduced in 2.7 and replaces self::should_not_exists(),
-     * it has been added here to make backports easier and to help 3rd parties working on new
-     * scenarios so they don't need to update their scenarios when they upgrade to 2.7.
-     *
-     * @Then /^"(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" should not exist$/
-     * @param string $element The locator of the specified selector
-     * @param string $selectortype The selector type
-     */
-    public function should_not_exist($element, $selectortype) {
-        // Forwarding it.
-        $this->should_not_exists($element, $selectortype);
-    }
-
-    /**
-     * Checks that the provided element and selector type not exists in the current page. This step will be deprecated in Moodle 2.7 in favour of '"ELEMENT_STRING" "SELECTOR_STRING" should not exist'.
-     *
      * This step is for advanced users, use it if you don't find anything else suitable for what you need.
      *
-     * @Then /^"(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" should not exists$/
+     * @Then /^"(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" should not exist$/
      * @throws ExpectationException
      * @param string $element The locator of the specified selector
      * @param string $selectortype The selector type
      */
-    public function should_not_exists($element, $selectortype) {
+    public function should_not_exist($element, $selectortype) {
 
         // Getting Mink selector and locator.
         list($selector, $locator) = $this->transform_selector($selectortype, $element);
@@ -938,7 +878,7 @@ class behat_general extends behat_base {
         list($selector, $locator) = $this->transform_selector($selectortype, $element);
 
         // Will throw an ElementNotFoundException if it does not exist, but, actually
-        // it should not exists, so we try & catch it.
+        // it should not exist, so we try & catch it.
         try {
             // Would be better to use a 1 second sleep because the element should not be there,
             // but we would need to duplicate the whole find_all() logic to do it, the benefit of
@@ -950,6 +890,19 @@ class behat_general extends behat_base {
             // It passes.
             return;
         }
+    }
+
+    /**
+     * Change browser window size small: 640x480, medium: 1024x768, large: 2560x1600, custom: widthxheight
+     *
+     * Example: I change window size to "small" or I change window size to "1024x768"
+     *
+     * @throws ExpectationException
+     * @Then /^I change window size to "([^"](small|medium|large|\d+x\d+))"$/
+     * @param string $windowsize size of the window (small|medium|large|wxh).
+     */
+    public function i_change_window_size_to($windowsize) {
+        $this->resize_window($windowsize);
     }
 
     /**

@@ -45,23 +45,6 @@ class behat_repository_upload extends behat_files {
     /**
      * Uploads a file to the specified filemanager leaving other fields in upload form default. The paths should be relative to moodle codebase.
      *
-     * Will be deprecated in 2.7
-     * @see behat_repository_upload::i_upload_file_to_filemanager()
-     *
-     * @When /^I upload "(?P<filepath_string>(?:[^"]|\\")*)" file to "(?P<filepicker_field_string>(?:[^"]|\\")*)" filepicker$/
-     * @throws ExpectationException Thrown by behat_base::find
-     * @param string $filepath
-     * @param string $filepickerelement
-     */
-    public function i_upload_file_to_filepicker($filepath, $filepickerelement) {
-        $alternative = 'I upload "' . $this->escape($filepath) . '" file to "' .
-                $this->escape($filepickerelement) . '" filemanager';
-        return array(new Behat\Behat\Context\Step\Given($alternative));
-    }
-
-    /**
-     * Uploads a file to the specified filemanager leaving other fields in upload form default. The paths should be relative to moodle codebase.
-     *
      * @When /^I upload "(?P<filepath_string>(?:[^"]|\\")*)" file to "(?P<filemanager_field_string>(?:[^"]|\\")*)" filemanager$/
      * @throws ExpectationException Thrown by behat_base::find
      * @param string $filepath

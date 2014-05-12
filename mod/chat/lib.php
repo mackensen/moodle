@@ -18,7 +18,7 @@
 /**
  * Library of functions and constants for module chat
  *
- * @package   mod-chat
+ * @package   mod_chat
  * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -201,39 +201,6 @@ function chat_delete_instance($id) {
     }
 
     return $result;
-}
-
-/**
- * Return a small object with summary information about what a
- * user has done with a given particular instance of this module
- * Used for user activity reports.
- * <code>
- * $return->time = the time they did it
- * $return->info = a short text description
- * </code>
- *
- * @param object $course
- * @param object $user
- * @param object $mod
- * @param object $chat
- * @return void
- */
-function chat_user_outline($course, $user, $mod, $chat) {
-    return NULL;
-}
-
-/**
- * Print a detailed representation of what a  user has done with
- * a given particular instance of this module, for user activity reports.
- *
- * @param object $course
- * @param object $user
- * @param object $mod
- * @param object $chat
- * @return bool
- */
-function chat_user_complete($course, $user, $mod, $chat) {
-    return true;
 }
 
 /**
@@ -1103,6 +1070,13 @@ function chat_print_error($level, $msg) {
 }
 
 /**
+ * List the actions that correspond to a view of this module.
+ * This is used by the participation report.
+ *
+ * Note: This is not used by new logging system. Event with
+ *       crud = 'r' and edulevel = LEVEL_PARTICIPATING will
+ *       be considered as view action.
+ *
  * @return array
  */
 function chat_get_view_actions() {
@@ -1110,6 +1084,13 @@ function chat_get_view_actions() {
 }
 
 /**
+ * List the actions that correspond to a post of this module.
+ * This is used by the participation report.
+ *
+ * Note: This is not used by new logging system. Event with
+ *       crud = ('c' || 'u' || 'd') and edulevel = LEVEL_PARTICIPATING
+ *       will be considered as post action.
+ *
  * @return array
  */
 function chat_get_post_actions() {

@@ -75,9 +75,17 @@ function add_moduleinfo($moduleinfo, $course, $mform = null) {
         $newcm->completionexpected        = $moduleinfo->completionexpected;
     }
     if(!empty($CFG->enableavailability)) {
-        $newcm->availablefrom             = $moduleinfo->availablefrom;
-        $newcm->availableuntil            = $moduleinfo->availableuntil;
-        $newcm->showavailability          = $moduleinfo->showavailability;
+        // This code is used both when submitting the form, which uses a long
+        // name to avoid clashes, and by unit test code which uses the real
+        // name in the table.
+        $newcm->availability = null;
+        if (property_exists($moduleinfo, 'availabilityconditionsjson')) {
+            if ($moduleinfo->availabilityconditionsjson !== '') {
+                $newcm->availability = $moduleinfo->availabilityconditionsjson;
+            }
+        } else if (property_exists($moduleinfo, 'availability')) {
+            $newcm->availability = $moduleinfo->availability;
+        }
     }
     if (isset($moduleinfo->showdescription)) {
         $newcm->showdescription = $moduleinfo->showdescription;
@@ -139,11 +147,6 @@ function add_moduleinfo($moduleinfo, $course, $mform = null) {
     // So we have to update one of them twice.
     $sectionid = course_add_cm_to_section($course, $moduleinfo->coursemodule, $moduleinfo->section);
 
-    // Set up conditions.
-    if ($CFG->enableavailability) {
-        condition_info::update_cm_from_form((object)array('id'=>$moduleinfo->coursemodule), $moduleinfo, false);
-    }
-
     // Trigger event based on the action we did.
     $event = \core\event\course_module_created::create(array(
          'courseid' => $course->id,
@@ -156,10 +159,6 @@ function add_moduleinfo($moduleinfo, $course, $mform = null) {
          )
     ));
     $event->trigger();
-
-    add_to_log($course->id, $moduleinfo->modulename, "add",
-               "view.php?id=$moduleinfo->coursemodule",
-               "$moduleinfo->instance", $moduleinfo->coursemodule);
 
     $moduleinfo = edit_module_post_actions($moduleinfo, $course);
     $transaction->allow_commit();
@@ -223,6 +222,7 @@ function edit_module_post_actions($moduleinfo, $course) {
         }
     }
 
+    require_once($CFG->libdir.'/grade/grade_outcome.php');
     // Add outcomes if requested.
     if ($hasoutcomes && $outcomes = grade_outcome::fetch_all_available($course->id)) {
         $grade_items = array();
@@ -354,12 +354,22 @@ function set_moduleinfo_defaults($moduleinfo) {
     if (!isset($moduleinfo->completionview)) {
         $moduleinfo->completionview = COMPLETION_VIEW_NOT_REQUIRED;
     }
+    if (!isset($moduleinfo->completionexpected)) {
+        $moduleinfo->completionexpected = 0;
+    }
 
     // Convert the 'use grade' checkbox into a grade-item number: 0 if checked, null if not.
     if (isset($moduleinfo->completionusegrade) && $moduleinfo->completionusegrade) {
         $moduleinfo->completiongradeitemnumber = 0;
     } else {
         $moduleinfo->completiongradeitemnumber = null;
+    }
+
+    if (!isset($moduleinfo->conditiongradegroup)) {
+        $moduleinfo->conditiongradegroup = array();
+    }
+    if (!isset($moduleinfo->conditionfieldgroup)) {
+        $moduleinfo->conditionfieldgroup = array();
     }
 
     return $moduleinfo;
@@ -462,10 +472,18 @@ function update_moduleinfo($cm, $moduleinfo, $course, $mform = null) {
         $cm->completionexpected        = $moduleinfo->completionexpected;
     }
     if (!empty($CFG->enableavailability)) {
-        $cm->availablefrom             = $moduleinfo->availablefrom;
-        $cm->availableuntil            = $moduleinfo->availableuntil;
-        $cm->showavailability          = $moduleinfo->showavailability;
-        condition_info::update_cm_from_form($cm,$moduleinfo,true);
+        // This code is used both when submitting the form, which uses a long
+        // name to avoid clashes, and by unit test code which uses the real
+        // name in the table.
+        if (property_exists($moduleinfo, 'availabilityconditionsjson')) {
+            if ($moduleinfo->availabilityconditionsjson !== '') {
+                $cm->availability = $moduleinfo->availabilityconditionsjson;
+            } else {
+                $cm->availability = null;
+            }
+        } else if (property_exists($moduleinfo, 'availability')) {
+            $cm->availability = $moduleinfo->availability;
+        }
     }
     if (isset($moduleinfo->showdescription)) {
         $cm->showdescription = $moduleinfo->showdescription;
@@ -507,10 +525,6 @@ function update_moduleinfo($cm, $moduleinfo, $course, $mform = null) {
     }
     $cm->name = $moduleinfo->name;
     \core\event\course_module_updated::create_from_cm($cm, $modcontext)->trigger();
-
-    add_to_log($course->id, $moduleinfo->modulename, "update",
-               "view.php?id=$moduleinfo->coursemodule",
-               "$moduleinfo->instance", $moduleinfo->coursemodule);
 
     $moduleinfo = edit_module_post_actions($moduleinfo, $course);
 

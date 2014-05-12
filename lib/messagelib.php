@@ -57,8 +57,21 @@ function message_send($eventdata) {
     //new message ID to return
     $messageid = false;
 
+    // Fetch default (site) preferences
+    $defaultpreferences = get_message_output_default_preferences();
+    $preferencebase = $eventdata->component.'_'.$eventdata->name;
+    // If message provider is disabled then don't do any processing.
+    if (!empty($defaultpreferences->{$preferencebase.'_disable'})) {
+        return $messageid;
+    }
+
     //TODO: we need to solve problems with database transactions here somehow, for now we just prevent transactions - sorry
     $DB->transactions_forbidden();
+
+    // By default a message is a notification. Only personal/private messages aren't notifications.
+    if (!isset($eventdata->notification)) {
+        $eventdata->notification = 1;
+    }
 
     if (is_number($eventdata->userto)) {
         $eventdata->userto = core_user::get_user($eventdata->userto);
@@ -101,12 +114,7 @@ function message_send($eventdata) {
     $savemessage->fullmessageformat = $eventdata->fullmessageformat;
     $savemessage->fullmessagehtml   = $eventdata->fullmessagehtml;
     $savemessage->smallmessage      = $eventdata->smallmessage;
-
-    if (!empty($eventdata->notification)) {
-        $savemessage->notification = $eventdata->notification;
-    } else {
-        $savemessage->notification = 0;
-    }
+    $savemessage->notification      = $eventdata->notification;
 
     if (!empty($eventdata->contexturl)) {
         $savemessage->contexturl = $eventdata->contexturl;
@@ -150,12 +158,9 @@ function message_send($eventdata) {
 
     // Fetch enabled processors
     $processors = get_message_processors(true);
-    // Fetch default (site) preferences
-    $defaultpreferences = get_message_output_default_preferences();
 
     // Preset variables
     $processorlist = array();
-    $preferencebase = $eventdata->component.'_'.$eventdata->name;
     // Fill in the array of processors to be used based on default and user preferences
     foreach ($processors as $processor) {
         // Skip adding processors for internal user, if processor doesn't support sending message to internal user.
@@ -241,6 +246,27 @@ function message_send($eventdata) {
             }
         }
     }
+
+    // We may be sending a message from the 'noreply' address, which means we are not actually sending a
+    // message from a valid user. In this case, we will set the userid to 0.
+    // Check if the userid is valid.
+    if (core_user::is_real_user($eventdata->userfrom->id)) {
+        $userfromid = $eventdata->userfrom->id;
+    } else {
+        $userfromid = 0;
+    }
+
+    // Trigger event for sending a message.
+    $event = \core\event\message_sent::create(array(
+        'userid' => $userfromid,
+        'context'  => context_system::instance(),
+        'relateduserid' => $eventdata->userto->id,
+        'other' => array(
+            'messageid' => $messageid // Can't use this as the objectid as it can either be the id in the 'message_read'
+                                      // or 'message' table.
+        )
+    ));
+    $event->trigger();
 
     return $messageid;
 }

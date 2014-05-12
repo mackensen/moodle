@@ -179,9 +179,9 @@ function upgrade_set_timeout($max_execution_time=300) {
 
     if (CLI_SCRIPT) {
         // there is no point in timing out of CLI scripts, admins can stop them if necessary
-        set_time_limit(0);
+        core_php_time_limit::raise();
     } else {
-        set_time_limit($max_execution_time);
+        core_php_time_limit::raise($max_execution_time);
     }
     set_config('upgraderunning', $expected_end); // keep upgrade locked until this time
 }
@@ -371,27 +371,29 @@ function upgrade_stale_php_files_present() {
     global $CFG;
 
     $someexamplesofremovedfiles = array(
-        // removed in 2.6dev
+        // Removed in 2.7.
+        '/admin/tool/qeupgradehelper/version.php',
+        // Removed in 2.6.
         '/admin/block.php',
         '/admin/oacleanup.php',
-        // removed in 2.5dev
+        // Removed in 2.5.
         '/backup/lib.php',
         '/backup/bb/README.txt',
         '/lib/excel/test.php',
-        // removed in 2.4dev
+        // Removed in 2.4.
         '/admin/tool/unittest/simpletestlib.php',
-        // removed in 2.3dev
+        // Removed in 2.3.
         '/lib/minify/builder/',
-        // removed in 2.2dev
+        // Removed in 2.2.
         '/lib/yui/3.4.1pr1/',
-        // removed in 2.2
+        // Removed in 2.2.
         '/search/cron_php5.php',
         '/course/report/log/indexlive.php',
         '/admin/report/backups/index.php',
         '/admin/generator.php',
-        // removed in 2.1
+        // Removed in 2.1.
         '/lib/yui/2.8.0r4/',
-        // removed in 2.0
+        // Removed in 2.0.
         '/blocks/admin/block_admin.php',
         '/blocks/admin_tree/block_admin_tree.php',
     );
@@ -424,7 +426,7 @@ function upgrade_plugins($type, $startcallback, $endcallback, $verbose) {
 
     foreach ($plugs as $plug=>$fullplug) {
         // Reset time so that it works when installing a large number of plugins
-        set_time_limit(600);
+        core_php_time_limit::raise(600);
         $component = clean_param($type.'_'.$plug, PARAM_COMPONENT); // standardised plugin name
 
         // check plugin dir is valid name
@@ -477,6 +479,7 @@ function upgrade_plugins($type, $startcallback, $endcallback, $verbose) {
                     log_update_descriptions($component);
                     external_update_descriptions($component);
                     events_update_definition($component);
+                    \core\task\manager::reset_scheduled_tasks_for_component($component);
                     message_update_providers($component);
                     if ($type === 'message') {
                         message_update_processors($plug);
@@ -513,6 +516,7 @@ function upgrade_plugins($type, $startcallback, $endcallback, $verbose) {
             log_update_descriptions($component);
             external_update_descriptions($component);
             events_update_definition($component);
+            \core\task\manager::reset_scheduled_tasks_for_component($component);
             message_update_providers($component);
             if ($type === 'message') {
                 message_update_processors($plug);
@@ -544,6 +548,7 @@ function upgrade_plugins($type, $startcallback, $endcallback, $verbose) {
             log_update_descriptions($component);
             external_update_descriptions($component);
             events_update_definition($component);
+            \core\task\manager::reset_scheduled_tasks_for_component($component);
             message_update_providers($component);
             if ($type === 'message') {
                 // Ugly hack!
@@ -586,10 +591,11 @@ function upgrade_plugins_modules($startcallback, $endcallback, $verbose) {
             throw new plugin_defective_exception($component, 'Missing version.php');
         }
 
+        // TODO: Support for $module will end with Moodle 2.10 by MDL-43896. Was deprecated for Moodle 2.7 by MDL-43040.
         $plugin = new stdClass();
         $plugin->version = null;
         $module = $plugin;
-        require($fullmod .'/version.php');  // Defines $module/$plugin with version etc.
+        require($fullmod .'/version.php');  // Defines $plugin with version etc.
         $plugin = clone($module);
         unset($module->version);
         unset($module->component);
@@ -642,6 +648,7 @@ function upgrade_plugins_modules($startcallback, $endcallback, $verbose) {
                     log_update_descriptions($component);
                     external_update_descriptions($component);
                     events_update_definition($component);
+                    \core\task\manager::reset_scheduled_tasks_for_component($component);
                     message_update_providers($component);
                     upgrade_plugin_mnet_functions($component);
                     $endcallback($component, true, $verbose);
@@ -674,6 +681,7 @@ function upgrade_plugins_modules($startcallback, $endcallback, $verbose) {
             log_update_descriptions($component);
             external_update_descriptions($component);
             events_update_definition($component);
+            \core\task\manager::reset_scheduled_tasks_for_component($component);
             message_update_providers($component);
             upgrade_plugin_mnet_functions($component);
 
@@ -708,6 +716,7 @@ function upgrade_plugins_modules($startcallback, $endcallback, $verbose) {
             log_update_descriptions($component);
             external_update_descriptions($component);
             events_update_definition($component);
+            \core\task\manager::reset_scheduled_tasks_for_component($component);
             message_update_providers($component);
             upgrade_plugin_mnet_functions($component);
 
@@ -826,6 +835,7 @@ function upgrade_plugins_blocks($startcallback, $endcallback, $verbose) {
                     log_update_descriptions($component);
                     external_update_descriptions($component);
                     events_update_definition($component);
+                    \core\task\manager::reset_scheduled_tasks_for_component($component);
                     message_update_providers($component);
                     upgrade_plugin_mnet_functions($component);
                     $endcallback($component, true, $verbose);
@@ -864,6 +874,7 @@ function upgrade_plugins_blocks($startcallback, $endcallback, $verbose) {
             log_update_descriptions($component);
             external_update_descriptions($component);
             events_update_definition($component);
+            \core\task\manager::reset_scheduled_tasks_for_component($component);
             message_update_providers($component);
             upgrade_plugin_mnet_functions($component);
 
@@ -897,6 +908,7 @@ function upgrade_plugins_blocks($startcallback, $endcallback, $verbose) {
             log_update_descriptions($component);
             external_update_descriptions($component);
             events_update_definition($component);
+            \core\task\manager::reset_scheduled_tasks_for_component($component);
             message_update_providers($component);
             upgrade_plugin_mnet_functions($component);
 
@@ -1480,7 +1492,7 @@ function install_core($version, $verbose) {
     make_writable_directory($CFG->dataroot.'/muc', true);
 
     try {
-        set_time_limit(600);
+        core_php_time_limit::raise(600);
         print_upgrade_part_start('moodle', true, $verbose); // does not store upgrade running flag
 
         $DB->get_manager()->install_from_xmldb_file("$CFG->libdir/db/install.xml");
@@ -1497,6 +1509,7 @@ function install_core($version, $verbose) {
         log_update_descriptions('moodle');
         external_update_descriptions('moodle');
         events_update_definition('moodle');
+        \core\task\manager::reset_scheduled_tasks_for_component('moodle');
         message_update_providers('moodle');
 
         // Write default settings unconditionally
@@ -1538,7 +1551,7 @@ function upgrade_core($version, $verbose) {
         // Pre-upgrade scripts for local hack workarounds.
         $preupgradefile = "$CFG->dirroot/local/preupgrade.php";
         if (file_exists($preupgradefile)) {
-            set_time_limit(0);
+            core_php_time_limit::raise();
             require($preupgradefile);
             // Reset upgrade timeout to default.
             upgrade_set_timeout();
@@ -1559,6 +1572,7 @@ function upgrade_core($version, $verbose) {
         log_update_descriptions('moodle');
         external_update_descriptions('moodle');
         events_update_definition('moodle');
+        \core\task\manager::reset_scheduled_tasks_for_component('moodle');
         message_update_providers('moodle');
         // Update core definitions.
         cache_helper::update_definitions(true);

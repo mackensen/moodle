@@ -54,7 +54,7 @@ define('TOCFULLURL', 2);
 /// Local Library of functions for module scorm
 
 /**
- * @package   mod-scorm
+ * @package   mod_scorm
  * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -415,7 +415,7 @@ function scorm_get_scoes($id, $organisation=false) {
     }
 }
 
-function scorm_insert_track($userid, $scormid, $scoid, $attempt, $element, $value, $forcecompleted=false) {
+function scorm_insert_track($userid, $scormid, $scoid, $attempt, $element, $value, $forcecompleted=false, $trackdata = null) {
     global $DB, $CFG;
 
     $id = null;
@@ -497,15 +497,25 @@ function scorm_insert_track($userid, $scormid, $scoid, $attempt, $element, $valu
 
     }
 
-    if ($track = $DB->get_record('scorm_scoes_track', array('userid' => $userid,
+    $track = null;
+    if ($trackdata !== null) {
+        if (isset($trackdata[$element])) {
+            $track = $trackdata[$element];
+        }
+    } else {
+        $track = $DB->get_record('scorm_scoes_track', array('userid' => $userid,
                                                             'scormid' => $scormid,
                                                             'scoid' => $scoid,
                                                             'attempt' => $attempt,
-                                                            'element' => $element))) {
+                                                            'element' => $element));
+    }
+    if ($track) {
         if ($element != 'x.start.time' ) { // Don't update x.start.time - keep the original value.
-            $track->value = $value;
-            $track->timemodified = time();
-            $DB->update_record('scorm_scoes_track', $track);
+            if ($track->value != $value) {
+                $track->value = $value;
+                $track->timemodified = time();
+                $DB->update_record('scorm_scoes_track', $track);
+            }
             $id = $track->id;
         }
     } else {
@@ -1292,9 +1302,9 @@ function scorm_debugging($scorm) {
  * Delete Scorm tracks for selected users
  *
  * @param array $attemptids list of attempts that need to be deleted
- * @param int $scorm instance
+ * @param stdClass $scorm instance
  *
- * return bool true deleted all responses, false failed deleting an attempt - stopped here
+ * @return bool true deleted all responses, false failed deleting an attempt - stopped here
  */
 function scorm_delete_responses($attemptids, $scorm) {
     if (!is_array($attemptids) || empty($attemptids)) {
@@ -1326,15 +1336,27 @@ function scorm_delete_responses($attemptids, $scorm) {
  * Delete Scorm tracks for selected users
  *
  * @param int $userid ID of User
- * @param int $scormid ID of Scorm
+ * @param stdClass $scorm Scorm object
  * @param int $attemptid user attempt that need to be deleted
  *
- * return bool true suceeded
+ * @return bool true suceeded
  */
 function scorm_delete_attempt($userid, $scorm, $attemptid) {
     global $DB;
 
     $DB->delete_records('scorm_scoes_track', array('userid' => $userid, 'scormid' => $scorm->id, 'attempt' => $attemptid));
+    $cm = get_coursemodule_from_instance('scorm', $scorm->id);
+
+    // Trigger instances list viewed event.
+    $event = \mod_scorm\event\attempt_deleted::create(array(
+         'other' => array('attemptid' => $attemptid),
+         'context' => context_module::instance($cm->id),
+         'relateduserid' => $userid
+    ));
+    $event->add_record_snapshot('course_modules', $cm);
+    $event->add_record_snapshot('scorm', $scorm);
+    $event->trigger();
+
     include_once('lib.php');
     scorm_update_grades($scorm, $userid, true);
     return true;
@@ -1895,11 +1917,8 @@ function scorm_get_adlnav_json ($scoes, &$adlnav = array(), $parentscoid = null)
  */
 function scorm_check_url($url) {
     $curl = new curl;
-
-    if (!ini_get('open_basedir') and !ini_get('safe_mode')) {
-        // Same options as in {@link download_file_content()}, used in {@link scorm_parse_scorm()}.
-        $curl->setopt(array('CURLOPT_FOLLOWLOCATION' => true, 'CURLOPT_MAXREDIRS' => 5));
-    }
+    // Same options as in {@link download_file_content()}, used in {@link scorm_parse_scorm()}.
+    $curl->setopt(array('CURLOPT_FOLLOWLOCATION' => true, 'CURLOPT_MAXREDIRS' => 5));
     $cmsg = $curl->head($url);
     $info = $curl->get_info();
     if (empty($info['http_code']) || $info['http_code'] != 200) {

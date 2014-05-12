@@ -14,10 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace core\event;
-
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Event for when a new note entry deleted.
  *
@@ -26,17 +22,27 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace core\event;
+
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * Class note_deleted
  *
  * Class for event to be triggered when a note is deleted.
+ *
+ * @property-read array $other {
+ *      Extra information about event.
+ *
+ *      - string publishstate: the publish state.
+ * }
  *
  * @package    core
  * @since      Moodle 2.6
  * @copyright  2013 Ankit Agarwal
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class note_deleted extends \core\event\base {
+class note_deleted extends base {
 
     /**
      * Set basic properties for the event.
@@ -44,7 +50,7 @@ class note_deleted extends \core\event\base {
     protected function init() {
         $this->data['objecttable'] = 'post';
         $this->data['crud'] = 'd';
-        $this->data['level'] = self::LEVEL_OTHER;
+        $this->data['edulevel'] = self::LEVEL_OTHER;
     }
 
     /**
@@ -62,7 +68,8 @@ class note_deleted extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        return 'Note for user with id "'. $this->relateduserid . '" was deleted by user with id "' . $this->userid . '"';
+        return "The user with id '$this->userid' deleted the note with id '$this->objectid' for the user with id " .
+            "'$this->relateduserid'";
     }
 
     /**

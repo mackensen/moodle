@@ -444,8 +444,8 @@ class block_manager {
             foreach ($SESSION->custom_block_regions[$pagetype] as $customregion) {
                 $this->add_region($customregion, false);
             }
-          }
-      }
+        }
+    }
 
     /**
      * Set the default region for new blocks on the page
