@@ -4428,7 +4428,7 @@ function authenticate_user_login($username, $password, $ignorelockout=false, &$f
 
         // Do not try to authenticate non-existent accounts when user creation is disabled.
         if (!empty($CFG->authpreventaccountcreation)) {
-            $failurereason = AUTH_LOGIN_NOUSER;
+            $failurereason = AUTH_LOGIN_UNAUTHORISED;
 
             // Trigger login failed event.
             $event = \core\event\user_login_failed::create(array('other' => array('username' => $username,
