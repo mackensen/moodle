@@ -224,6 +224,20 @@ function qualified_me() {
 }
 
 /**
+ * Determines whether or not the Moodle site is being served over HTTPS.
+ *
+ * This is done simply by checking the value of $CFG->httpswwwroot, which seems
+ * to be the only reliable method.
+ *
+ * @return boolean True if site is served over HTTPS, false otherwise.
+ */
+function is_https() {
+    global $CFG;
+
+    return (strpos($CFG->httpswwwroot, 'https://') === 0);
+}
+
+/**
  * Class for creating and manipulating urls.
  *
  * It can be used in moodle pages where config.php has been included without any further includes.
@@ -723,6 +737,32 @@ class moodle_url {
                                                $forcedownload = false) {
         global $CFG;
         $urlbase = "$CFG->httpswwwroot/pluginfile.php";
+        if ($itemid === null) {
+            return self::make_file_url($urlbase, "/$contextid/$component/$area".$pathname.$filename, $forcedownload);
+        } else {
+            return self::make_file_url($urlbase, "/$contextid/$component/$area/$itemid".$pathname.$filename, $forcedownload);
+        }
+    }
+
+    /**
+     * Factory method for creation of url pointing to plugin file.
+     * This method is the same that make_pluginfile_url but pointing to the webservice pluginfile.php script.
+     * It should be used only in external functions.
+     *
+     * @since  2.8
+     * @param int $contextid
+     * @param string $component
+     * @param string $area
+     * @param int $itemid
+     * @param string $pathname
+     * @param string $filename
+     * @param bool $forcedownload
+     * @return moodle_url
+     */
+    public static function make_webservice_pluginfile_url($contextid, $component, $area, $itemid, $pathname, $filename,
+                                               $forcedownload = false) {
+        global $CFG;
+        $urlbase = "$CFG->httpswwwroot/webservice/pluginfile.php";
         if ($itemid === null) {
             return self::make_file_url($urlbase, "/$contextid/$component/$area".$pathname.$filename, $forcedownload);
         } else {
@@ -1682,6 +1722,7 @@ function purify_html($text, $options = array()) {
             'nntp' => true,
             'news' => true,
             'rtsp' => true,
+            'rtmp' => true,
             'teamspeak' => true,
             'gopher' => true,
             'mms' => true,
@@ -2995,21 +3036,22 @@ class progress_bar {
      * @return void Echo's output
      */
     public function create() {
+        global $PAGE;
+
         $this->time_start = microtime(true);
         if (CLI_SCRIPT) {
             return; // Temporary solution for cli scripts.
         }
-        $widthplusborder = $this->width + 2;
+
+        $PAGE->requires->string_for_js('secondsleft', 'moodle');
+
         $htmlcode = <<<EOT
-        <div style="text-align:center;width:{$widthplusborder}px;clear:both;padding:0;margin:0 auto;">
-            <h2 id="status_{$this->html_id}" style="text-align: center;margin:0 auto"></h2>
-            <p id="time_{$this->html_id}"></p>
-            <div id="bar_{$this->html_id}" style="border-style:solid;border-width:1px;width:{$this->width}px;height:50px;">
-                <div id="progress_{$this->html_id}"
-                style="text-align:center;background:#FFCC66;width:4px;border:1px
-                solid gray;height:38px; padding-top:10px;">&nbsp;<span id="pt_{$this->html_id}"></span>
-                </div>
+        <div class="progressbar_container" style="width: {$this->width}px;" id="{$this->html_id}">
+            <h2></h2>
+            <div class="progress progress-striped active">
+                <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">&nbsp;</div>
             </div>
+            <p></p>
         </div>
 EOT;
         flush();
@@ -3035,12 +3077,11 @@ EOT;
             return; // Temporary solution for cli scripts.
         }
 
-        $es = $this->estimate($percent);
+        $estimate = $this->estimate($percent);
 
-        if ($es === null) {
+        if ($estimate === null) {
             // Always do the first and last updates.
-            $es = "?";
-        } else if ($es == 0) {
+        } else if ($estimate == 0) {
             // Always do the last updates.
         } else if ($this->lastupdate + 20 < time()) {
             // We must update otherwise browser would time out.
@@ -3048,13 +3089,15 @@ EOT;
             // No significant change, no need to update anything.
             return;
         }
+        if (is_numeric($estimate)) {
+            $estimate = get_string('secondsleft', 'moodle', round($estimate, 2));
+        }
 
-        $this->percent = $percent;
+        $this->percent = round($percent, 2);
         $this->lastupdate = microtime(true);
 
-        $w = ($this->percent/100) * $this->width;
-        echo html_writer::script(js_writer::function_call('update_progress_bar',
-            array($this->html_id, $w, $this->percent, $msg, $es)));
+        echo html_writer::script(js_writer::function_call('updateProgressBar',
+            array($this->html_id, $this->percent, $msg, $estimate)));
         flush();
     }
 
@@ -3446,6 +3489,8 @@ function print_password_policy() {
  * @param boolean $ajax Whether this help is called from an AJAX script.
  *                This is used to influence text formatting and determines
  *                which format to output the doclink in.
+ * @param string|object|array $a An object, string or number that can be used
+ *      within translation strings
  * @return Object An object containing:
  * - heading: Any heading that there may be for this help string.
  * - text: The wiki-formatted help string.
@@ -3453,7 +3498,7 @@ function print_password_policy() {
  *            CSS classes to apply to that link. Only present if $ajax = false.
  * - completedoclink: A text representation of the doclink. Only present if $ajax = true.
  */
-function get_formatted_help_string($identifier, $component, $ajax = false) {
+function get_formatted_help_string($identifier, $component, $ajax = false, $a = null) {
     global $CFG, $OUTPUT;
     $sm = get_string_manager();
 
@@ -3480,7 +3525,7 @@ function get_formatted_help_string($identifier, $component, $ajax = false) {
         $options->overflowdiv = !$ajax;
 
         // Should be simple wiki only MDL-21695.
-        $data->text =  format_text(get_string($identifier.'_help', $component), FORMAT_MARKDOWN, $options);
+        $data->text = format_text(get_string($identifier.'_help', $component, $a), FORMAT_MARKDOWN, $options);
 
         $helplink = $identifier . '_link';
         if ($sm->string_exists($helplink, $component)) {  // Link to further info in Moodle docs.

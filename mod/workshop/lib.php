@@ -46,7 +46,6 @@ function workshop_supports($feature) {
         case FEATURE_GRADE_HAS_GRADE:   return true;
         case FEATURE_GROUPS:            return true;
         case FEATURE_GROUPINGS:         return true;
-        case FEATURE_GROUPMEMBERSONLY:  return true;
         case FEATURE_MOD_INTRO:         return true;
         case FEATURE_BACKUP_MOODLE2:    return true;
         case FEATURE_COMPLETION_TRACKS_VIEWS:
@@ -308,12 +307,6 @@ function workshop_user_complete($course, $user, $mod, $workshop) {
     global $CFG, $DB, $OUTPUT;
     require_once(dirname(__FILE__).'/locallib.php');
     require_once($CFG->libdir.'/gradelib.php');
-
-    if ($mod instanceof cm_info) {
-        // We need to degrade here as the {@link workshop} class constructor
-        // expects the plain course module record.
-        $mod = $mod->get_course_module_record();
-    }
 
     $workshop   = new workshop($workshop, $mod, $course);
     $grades     = grade_get_grades($course->id, 'mod', 'workshop', $workshop->id, $user->id);
@@ -1718,8 +1711,6 @@ function workshop_calendar_update(stdClass $workshop, $cmid) {
 /**
  * Extends the course reset form with workshop specific settings.
  *
- * @since Moodle 2.6.6, 2.7.3
- *
  * @param MoodleQuickForm $mform
  */
 function workshop_reset_course_form_definition($mform) {
@@ -1740,8 +1731,6 @@ function workshop_reset_course_form_definition($mform) {
 /**
  * Provides default values for the workshop settings in the course reset form.
  *
- * @since Moodle 2.6.6, 2.7.3
- *
  * @param stdClass $course The course to be reset.
  */
 function workshop_reset_course_form_defaults(stdClass $course) {
@@ -1757,8 +1746,6 @@ function workshop_reset_course_form_defaults(stdClass $course) {
 
 /**
  * Performs the reset of all workshop instances in the course.
- *
- * @since Moodle 2.6.6, 2.7.3
  *
  * @param stdClass $data The actual course reset settings.
  * @return array List of results, each being array[(string)component, (string)item, (string)error]

@@ -31,7 +31,7 @@ class auth_db_testcase extends advanced_testcase {
     /** @var string Original error log */
     protected $oldlog;
 
-    public function init_auth_database() {
+    protected function init_auth_database() {
         global $DB, $CFG;
         require_once("$CFG->dirroot/auth/db/auth.php");
 

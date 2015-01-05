@@ -34,15 +34,18 @@ function xmldb_filter_mathjaxloader_upgrade($oldversion) {
     // Moodle v2.7.0 release upgrade line.
     // Put any upgrade step following this.
 
-    if ($oldversion < 2014051201) {
+    if ($oldversion < 2014081100) {
 
         $sslcdnurl = get_config('filter_mathjaxloader', 'httpsurl');
         if ($sslcdnurl === "https://c328740.ssl.cf1.rackcdn.com/mathjax/2.3-latest/MathJax.js") {
             set_config('httpsurl', 'https://cdn.mathjax.org/mathjax/2.3-latest/MathJax.js', 'filter_mathjaxloader');
         }
 
-        upgrade_plugin_savepoint(true, 2014051201, 'filter', 'mathjaxloader');
+        upgrade_plugin_savepoint(true, 2014081100, 'filter', 'mathjaxloader');
     }
+
+    // Moodle v2.8.0 release upgrade line.
+    // Put any upgrade step following this.
 
     return true;
 }

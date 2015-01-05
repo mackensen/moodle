@@ -647,4 +647,26 @@ class enrol_self_plugin extends enrol_plugin {
         // we do not use component in manual or self enrol.
         role_assign($roleid, $userid, $contextid, '', 0);
     }
+
+    /**
+     * Is it possible to delete enrol instance via standard UI?
+     *
+     * @param stdClass $instance
+     * @return bool
+     */
+    public function can_delete_instance($instance) {
+        $context = context_course::instance($instance->courseid);
+        return has_capability('enrol/self:config', $context);
+    }
+
+    /**
+     * Is it possible to hide/show enrol instance via standard UI?
+     *
+     * @param stdClass $instance
+     * @return bool
+     */
+    public function can_hide_show_instance($instance) {
+        $context = context_course::instance($instance->courseid);
+        return has_capability('enrol/self:config', $context);
+    }
 }

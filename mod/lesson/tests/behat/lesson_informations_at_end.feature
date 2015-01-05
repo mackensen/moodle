@@ -20,6 +20,7 @@ Feature: In a lesson activity, if custom scoring is not enabled, student should 
     And I turn editing mode on
     And I add a "Lesson" to section "1" and I fill the form with:
       | Name | Test lesson name |
+      | Description | Test lesson description |
       | Custom scoring | No |
     And I follow "Test lesson name"
     And I follow "Add a content page"

@@ -979,7 +979,7 @@ class global_navigation extends navigation_node {
     protected $initialised = false;
     /** @var array An array of course information */
     protected $mycourses = array();
-    /** @var array An array for containing  root navigation nodes */
+    /** @var navigation_node[] An array for containing  root navigation nodes */
     protected $rootnodes = array();
     /** @var bool A switch for whether to show empty sections in the navigation */
     protected $showemptysections = true;
@@ -1133,8 +1133,13 @@ class global_navigation extends navigation_node {
             $this->rootnodes['courses']->isexpandable = true;
         }
 
-        if ($this->rootnodes['mycourses']->isactive) {
+        // Load the users enrolled courses if they are viewing the My Moodle page AND the admin has not
+        // set that they wish to keep the My Courses branch collapsed by default.
+        if (!empty($CFG->navexpandmycourses) && $this->rootnodes['mycourses']->isactive){
             $this->load_courses_enrolled();
+        } else {
+            $this->rootnodes['mycourses']->collapse = true;
+            $this->rootnodes['mycourses']->make_inactive();
         }
 
         $canviewcourseprofile = true;
@@ -3756,7 +3761,7 @@ class settings_navigation extends navigation_node {
 
         // View course reports.
         if (has_capability('moodle/site:viewreports', $coursecontext)) { // Basic capability for listing of reports.
-            $reportnav = $coursenode->add(get_string('reports'), null, self::TYPE_CONTAINER, null, null,
+            $reportnav = $coursenode->add(get_string('reports'), null, self::TYPE_CONTAINER, null, 'coursereports',
                     new pix_icon('i/stats', ''));
             $coursereports = core_component::get_plugin_list('coursereport');
             foreach ($coursereports as $report => $dir) {
@@ -3894,6 +3899,13 @@ class settings_navigation extends navigation_node {
                 $switchroles->add($name, $url, self::TYPE_SETTING, null, $key, new pix_icon('i/switchrole', ''));
             }
         }
+
+        // Let admin tools hook into course navigation.
+        $tools = get_plugin_list_with_function('tool', 'extend_navigation_course', 'lib.php');
+        foreach ($tools as $toolfunction) {
+            $toolfunction($coursenode, $course, $coursecontext);
+        }
+
         // Return we are done
         return $coursenode;
     }
@@ -4208,7 +4220,7 @@ class settings_navigation extends navigation_node {
             if (empty($passwordchangeurl)) {
                 $passwordchangeurl = new moodle_url('/login/change_password.php', array('id'=>$course->id));
             }
-            $usersetting->add(get_string("changepassword"), $passwordchangeurl, self::TYPE_SETTING);
+            $usersetting->add(get_string("changepassword"), $passwordchangeurl, self::TYPE_SETTING, null, 'changepassword');
         }
 
         // View the roles settings
@@ -4324,6 +4336,12 @@ class settings_navigation extends navigation_node {
         if (!$user->deleted and !$currentuser && !\core\session\manager::is_loggedinas() && has_capability('moodle/user:loginas', $coursecontext) && !is_siteadmin($user->id)) {
             $url = new moodle_url('/course/loginas.php', array('id'=>$course->id, 'user'=>$user->id, 'sesskey'=>sesskey()));
             $usersetting->add(get_string('loginas'), $url, self::TYPE_SETTING);
+        }
+
+        // Let admin tools hook into user settings navigation.
+        $tools = get_plugin_list_with_function('tool', 'extend_navigation_user_settings', 'lib.php');
+        foreach ($tools as $toolfunction) {
+            $toolfunction($usersetting, $user, $usercontext, $course, $coursecontext);
         }
 
         return $usersetting;
@@ -4494,7 +4512,7 @@ class settings_navigation extends navigation_node {
 
         // View course reports.
         if (has_capability('moodle/site:viewreports', $coursecontext)) { // Basic capability for listing of reports.
-            $frontpagenav = $frontpage->add(get_string('reports'), null, self::TYPE_CONTAINER, null, null,
+            $frontpagenav = $frontpage->add(get_string('reports'), null, self::TYPE_CONTAINER, null, 'frontpagereports',
                     new pix_icon('i/stats', ''));
             $coursereports = core_component::get_plugin_list('coursereport');
             foreach ($coursereports as $report=>$dir) {
@@ -4536,6 +4554,13 @@ class settings_navigation extends navigation_node {
             $url = new moodle_url('/files/index.php', array('contextid'=>$coursecontext->id));
             $frontpage->add(get_string('sitelegacyfiles'), $url, self::TYPE_SETTING, null, null, new pix_icon('i/folder', ''));
         }
+
+        // Let admin tools hook into frontpage navigation.
+        $tools = get_plugin_list_with_function('tool', 'extend_navigation_frontpage', 'lib.php');
+        foreach ($tools as $toolfunction) {
+            $toolfunction($frontpage, $course, $coursecontext);
+        }
+
         return $frontpage;
     }
 

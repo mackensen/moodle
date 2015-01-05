@@ -48,7 +48,7 @@ class subscription_deleted extends \core\event\base {
      */
     protected function init() {
         $this->data['crud'] = 'd';
-        $this->data['edulevel'] = self::LEVEL_OTHER;
+        $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
         $this->data['objecttable'] = 'forum_subscriptions';
     }
 
@@ -58,7 +58,7 @@ class subscription_deleted extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        return "The user with id '$this->userid' unsubscribed the user with id '$this->relateduserid' to the forum with the " .
+        return "The user with id '$this->userid' unsubscribed the user with id '$this->relateduserid' to the forum with " .
             "course module id '$this->contextinstanceid'.";
     }
 

@@ -64,7 +64,7 @@ function xmldb_qtype_essay_upgrade($oldversion) {
                     $sql");
 
             foreach ($toupdate as $data) {
-                $progressbar->update($done, $count, "Updating essay feedback ($done/$count).");
+                $progressbar->update($done, $count, "Updating essay feedback ({$done}/{$count}).");
                 upgrade_set_timeout(60);
                 if ($data->generalfeedbackformat == $data->feedbackformat) {
                     $DB->set_field('question', 'generalfeedback',
@@ -172,6 +172,9 @@ function xmldb_qtype_essay_upgrade($oldversion) {
     }
 
     // Moodle v2.7.0 release upgrade line.
+    // Put any upgrade step following this.
+
+    // Moodle v2.8.0 release upgrade line.
     // Put any upgrade step following this.
 
     return true;

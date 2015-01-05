@@ -816,6 +816,8 @@ function initialise_fullme() {
             throw new coding_exception('Must use https address in wwwroot when ssl proxy enabled!');
         }
         $rurl['scheme'] = 'https'; // make moodle believe it runs on https, squid or something else it doing it
+        $_SERVER['HTTPS'] = 'on'; // Override $_SERVER to help external libraries with their HTTPS detection.
+        $_SERVER['SERVER_PORT'] = 443; // Assume default ssl port for the proxy.
     }
 
     // hopefully this will stop all those "clever" admins trying to set up moodle
@@ -1269,7 +1271,7 @@ function disable_output_buffering() {
  */
 function redirect_if_major_upgrade_required() {
     global $CFG;
-    $lastmajordbchanges = 2014040800.00;
+    $lastmajordbchanges = 2014093001.00;
     if (empty($CFG->version) or (float)$CFG->version < $lastmajordbchanges or
             during_initial_install() or !empty($CFG->adminsetuppending)) {
         try {

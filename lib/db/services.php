@@ -763,6 +763,15 @@ $functions = array(
         'capabilities'=> '',
     ),
 
+    'core_message_get_messages' => array(
+        'classname'     => 'core_message_external',
+        'methodname'    => 'get_messages',
+        'classpath'     => 'message/externallib.php',
+        'description'   => 'Retrieve a list of messages sent and received by a user (conversations, notifications or both)',
+        'type'          => 'read',
+        'capabilities'  => '',
+    ),
+
     // === notes related functions ===
 
     'moodle_notes_create_notes' => array(
@@ -825,6 +834,13 @@ $functions = array(
         'classpath'   => 'grade/externallib.php',
         'description' => 'DEPRECATED: this deprecated function will be removed in a future version. This function has been renamed as core_grading_get_definitions()',
         'type'        => 'read'
+    ),
+
+    'core_grading_save_definitions' => array(
+        'classname'   => 'core_grading_external',
+        'methodname'  => 'save_definitions',
+        'description' => 'Save grading definitions',
+        'type'        => 'write'
     ),
 
     'core_grading_get_gradingform_instances' => array(
@@ -950,8 +966,16 @@ $services = array(
             'message_airnotifier_are_notification_preferences_configured',
             'core_grades_update_grades',
             'mod_forum_get_forums_by_courses',
-            'mod_forum_get_forum_discussions',
-            'mod_forum_get_forum_discussion_posts'),
+            'mod_forum_get_forum_discussions_paginated',
+            'mod_forum_get_forum_discussion_posts',
+            'core_files_get_files',
+            'core_message_get_messages',
+            'core_message_create_contacts',
+            'core_message_delete_contacts',
+            'core_message_block_contacts',
+            'core_message_unblock_contacts',
+            'core_message_get_contacts',
+            'core_message_search_contacts'),
         'enabled' => 0,
         'restrictedusers' => 0,
         'shortname' => MOODLE_OFFICIAL_MOBILE_SERVICE,

@@ -42,7 +42,6 @@ if (! $course = $DB->get_record("course", array("id" => $forum->course))) {
 if (! $cm = get_coursemodule_from_instance("forum", $forum->id, $course->id)) {
     print_error('invalidcoursemodule');
 }
-
 require_login($course, false, $cm);
 
 $returnto = forum_go_back_to($returnpage.'?id='.$course->id.'&f='.$forum->id);

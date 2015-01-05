@@ -53,7 +53,7 @@ function xmldb_qtype_random_upgrade($oldversion) {
     // Moodle v2.7.0 release upgrade line.
     // Put any upgrade step following this.
 
-    if ($oldversion < 2014051201) {
+    if ($oldversion < 2014060200) {
         $sql = "UPDATE {question}
                    SET questiontext = '0'
                  WHERE qtype = 'random'
@@ -61,8 +61,11 @@ function xmldb_qtype_random_upgrade($oldversion) {
         $DB->execute($sql, array(''));
 
         // Record that qtype_random savepoint was reached.
-        upgrade_plugin_savepoint(true, 2014051201, 'qtype', 'random');
+        upgrade_plugin_savepoint(true, 2014060200, 'qtype', 'random');
     }
+
+    // Moodle v2.8.0 release upgrade line.
+    // Put any upgrade step following this.
 
     return true;
 }

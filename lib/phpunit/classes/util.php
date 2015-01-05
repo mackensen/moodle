@@ -461,8 +461,16 @@ class phpunit_util extends testing_util {
                 $suites .= $suite;
             }
         }
+        // Start a sequence between 100000 and 199000 to ensure each call to init produces
+        // different ids in the database.  This reduces the risk that hard coded values will
+        // end up being placed in phpunit or behat test code.
+        $sequencestart = 100000 + mt_rand(0, 99) * 1000;
 
         $data = preg_replace('|<!--@plugin_suites_start@-->.*<!--@plugin_suites_end@-->|s', $suites, $data, 1);
+        $data = str_replace(
+            '<const name="PHPUNIT_SEQUENCE_START" value=""/>',
+            '<const name="PHPUNIT_SEQUENCE_START" value="' . $sequencestart . '"/>',
+            $data);
 
         $result = false;
         if (is_writable($CFG->dirroot)) {
@@ -498,6 +506,11 @@ class phpunit_util extends testing_util {
             </testsuite>
         </testsuites>';
 
+        // Start a sequence between 100000 and 199000 to ensure each call to init produces
+        // different ids in the database.  This reduces the risk that hard coded values will
+        // end up being placed in phpunit or behat test code.
+        $sequencestart = 100000 + mt_rand(0, 99) * 1000;
+
         // Use the upstream file as source for the distributed configurations
         $ftemplate = file_get_contents("$CFG->dirroot/phpunit.xml.dist");
         $ftemplate = preg_replace('|<!--All core suites.*</testsuites>|s', '<!--@component_suite@-->', $ftemplate);
@@ -513,6 +526,10 @@ class phpunit_util extends testing_util {
 
             // Apply it to the file template
             $fcontents = str_replace('<!--@component_suite@-->', $ctemplate, $ftemplate);
+            $fcontents = str_replace(
+                '<const name="PHPUNIT_SEQUENCE_START" value=""/>',
+                '<const name="PHPUNIT_SEQUENCE_START" value="' . $sequencestart . '"/>',
+                $fcontents);
 
             // fix link to schema
             $level = substr_count(str_replace('\\', '/', $cpath), '/') - substr_count(str_replace('\\', '/', $CFG->dirroot), '/');

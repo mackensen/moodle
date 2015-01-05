@@ -482,6 +482,8 @@ class manager {
         $params = array('timestart1' => $timestart, 'timestart2' => $timestart);
         $records = $DB->get_records_select('task_scheduled', $where, $params);
 
+        $pluginmanager = \core_plugin_manager::instance();
+
         foreach ($records as $record) {
 
             if ($lock = $cronlockfactory->get_lock(($record->classname), 10)) {
@@ -494,6 +496,18 @@ class manager {
                 }
 
                 $task->set_lock($lock);
+
+                // See if the component is disabled.
+                $plugininfo = $pluginmanager->get_plugin_info($task->get_component());
+
+                if ($plugininfo) {
+                    if (($plugininfo->is_enabled() === false) && !$task->get_run_if_component_disabled()) {
+                        mtrace($task->get_name().' skipped - the component '.$task->get_component().' is disabled');
+                        $lock->release();
+                        continue;
+                    }
+                }
+
                 if (!$task->is_blocking()) {
                     $cronlock->release();
                 } else {

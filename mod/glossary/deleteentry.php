@@ -114,6 +114,12 @@ if ($confirm and confirm_sesskey()) { // the operation was confirmed.
         $rm->delete_ratings($delopt);
     }
 
+    // Delete cached RSS feeds.
+    if (!empty($CFG->enablerssfeeds)) {
+        require_once($CFG->dirroot.'/mod/glossary/rsslib.php');
+        glossary_rss_delete_file($glossary);
+    }
+
     $event = \mod_glossary\event\entry_deleted::create(array(
         'context' => $context,
         'objectid' => $origentry->id,
@@ -129,12 +135,6 @@ if ($confirm and confirm_sesskey()) { // the operation was confirmed.
     // Reset caches.
     if ($entry->usedynalink and $entry->approved) {
         \mod_glossary\local\concept_cache::reset_glossary($glossary);
-    }
-
-    // Delete cached RSS feeds.
-    if (!empty($CFG->enablerssfeeds)) {
-        require_once($CFG->dirroot.'/mod/glossary/rsslib.php');
-        glossary_rss_delete_file($glossary);
     }
 
     redirect("view.php?id=$cm->id&amp;mode=$prevmode&amp;hook=$hook");

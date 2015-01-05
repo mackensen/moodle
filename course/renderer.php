@@ -69,9 +69,13 @@ class core_course_renderer extends plugin_renderer_base {
      */
     protected function add_modchoosertoggle() {
         global $CFG;
-        static $modchoosertoggleadded = false;
-        // Add the module chooser toggle to the course page
-        if ($modchoosertoggleadded || $this->page->state > moodle_page::STATE_PRINTING_HEADER ||
+
+        // Only needs to be done once per page.
+        if (!$this->page->requires->should_create_one_time_item_now('core_course_modchoosertoggle')) {
+            return;
+        }
+
+        if ($this->page->state > moodle_page::STATE_PRINTING_HEADER ||
                 $this->page->course->id == SITEID ||
                 !$this->page->user_is_editing() ||
                 !($context = context_course::instance($this->page->course->id)) ||
@@ -79,11 +83,11 @@ class core_course_renderer extends plugin_renderer_base {
                 !course_ajax_enabled($this->page->course) ||
                 !($coursenode = $this->page->settingsnav->find('courseadmin', navigation_node::TYPE_COURSE)) ||
                 !($turneditingnode = $coursenode->get('turneditingonoff'))) {
-            // too late or we are on site page or we could not find the adjacent nodes in course settings menu
-            // or we are not allowed to edit
+            // Too late, or we are on site page, or we could not find the
+            // adjacent nodes in course settings menu, or we are not allowed to edit.
             return;
         }
-        $modchoosertoggleadded = true;
+
         if ($this->page->url->compare(new moodle_url('/course/view.php'), URL_MATCH_BASE)) {
             // We are on the course page, retain the current page params e.g. section.
             $modchoosertoggleurl = clone($this->page->url);
@@ -168,11 +172,9 @@ class core_course_renderer extends plugin_renderer_base {
      * @return string The composed HTML for the module
      */
     public function course_modchooser($modules, $course) {
-        static $isdisplayed = false;
-        if ($isdisplayed) {
+        if (!$this->page->requires->should_create_one_time_item_now('core_course_modchooser')) {
             return '';
         }
-        $isdisplayed = true;
 
         // Add the module chooser
         $this->page->requires->yui_module('moodle-course-modchooser',
@@ -788,12 +790,7 @@ class core_course_renderer extends plugin_renderer_base {
         // has already been encoded for display (puke).
         $onclick = htmlspecialchars_decode($mod->onclick, ENT_QUOTES);
 
-        $groupinglabel = '';
-        if (!empty($mod->groupingid) && has_capability('moodle/course:managegroups', context_course::instance($mod->course))) {
-            $groupings = groups_get_all_groupings($mod->course);
-            $groupinglabel = html_writer::tag('span', '('.format_string($groupings[$mod->groupingid]->name).')',
-                    array('class' => 'groupinglabel '.$textclasses));
-        }
+        $groupinglabel = $mod->get_grouping_label($textclasses);
 
         // Display link itself.
         $activitylink = html_writer::empty_tag('img', array('src' => $mod->get_icon_url(),
@@ -849,12 +846,7 @@ class core_course_renderer extends plugin_renderer_base {
                         trim('contentafterlink ' . $textclasses)));
             }
         } else {
-            $groupinglabel = '';
-            if (!empty($mod->groupingid) && has_capability('moodle/course:managegroups', context_course::instance($mod->course))) {
-                $groupings = groups_get_all_groupings($mod->course);
-                $groupinglabel = html_writer::tag('span', '('.format_string($groupings[$mod->groupingid]->name).')',
-                        array('class' => 'groupinglabel '.$textclasses));
-            }
+            $groupinglabel = $mod->get_grouping_label($textclasses);
 
             // No link, so display only content.
             $output = html_writer::tag('div', $accesstext . $content . $groupinglabel,
@@ -1499,14 +1491,13 @@ class core_course_renderer extends plugin_renderer_base {
      * Make sure that javascript file for AJAX expanding of courses and categories content is included
      */
     protected function coursecat_include_js() {
-        global $CFG;
-        static $jsloaded = false;
-        if (!$jsloaded) {
-            // We must only load this module once.
-            $this->page->requires->yui_module('moodle-course-categoryexpander',
-                    'Y.Moodle.course.categoryexpander.init');
-            $jsloaded = true;
+        if (!$this->page->requires->should_create_one_time_item_now('core_course_categoryexpanderjsinit')) {
+            return;
         }
+
+        // We must only load this module once.
+        $this->page->requires->yui_module('moodle-course-categoryexpander',
+                'Y.Moodle.course.categoryexpander.init');
     }
 
     /**
@@ -1749,11 +1740,11 @@ class core_course_renderer extends plugin_renderer_base {
             $catdisplayoptions['viewmoreurl'] = new moodle_url($baseurl, array('browse' => 'categories', 'page' => 1));
         }
         $chelper->set_courses_display_options($coursedisplayoptions)->set_categories_display_options($catdisplayoptions);
-        // Display course category tree.
-        $output .= $this->coursecat_tree($chelper, $coursecat);
-
         // Add course search form.
         $output .= $this->course_search_form();
+
+        // Display course category tree.
+        $output .= $this->coursecat_tree($chelper, $coursecat);
 
         // Add action buttons
         $output .= $this->container_start('buttons');

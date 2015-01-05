@@ -440,6 +440,18 @@
     }
     .nav-collapse.active {
         height: auto;
+        .usermenu .moodle-actionmenu[data-enhanced] {
+            .toggle-display {
+                display: none;
+            }
+            .menu {
+                display: block;
+
+                li {
+                    margin: 0 0.5em;
+                }
+            }
+        }
     }
     .path-mod-data .box > table > tbody > tr > td {
         display: block;
@@ -516,6 +528,16 @@
                             }
                         }
                     }
+                }
+                .divider {
+                    width: auto;
+                    display: block;
+                    height: 0px;
+                    margin: 4px 1px;
+                    border-left: 0px none;
+                    border-right: 0px none;
+                    border-top: 1px solid @navbarBorder;
+                    border-bottom: 1px solid @navbarBackgroundHighlight;
                 }
             }
         }

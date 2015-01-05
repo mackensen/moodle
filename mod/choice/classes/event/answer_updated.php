@@ -50,7 +50,7 @@ class answer_updated extends \core\event\base {
      */
     public function get_description() {
         return "The user with id '$this->userid' updated their choice with id '$this->objectid' in the choice activity
-            with the course module id '$this->contextinstanceid'.";
+            with course module id '$this->contextinstanceid'.";
     }
 
     /**
@@ -95,7 +95,7 @@ class answer_updated extends \core\event\base {
     protected function init() {
         $this->data['crud'] = 'u';
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
-        $this->data['objecttable'] = 'choice_answers';
+        $this->data['objecttable'] = 'choice';
     }
 
     /**

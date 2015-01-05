@@ -414,7 +414,10 @@ define('FEATURE_IDNUMBER', 'idnumber');
 define('FEATURE_GROUPS', 'groups');
 /** True if module supports groupings */
 define('FEATURE_GROUPINGS', 'groupings');
-/** True if module supports groupmembersonly */
+/**
+ * True if module supports groupmembersonly (which no longer exists)
+ * @deprecated Since Moodle 2.8
+ */
 define('FEATURE_GROUPMEMBERSONLY', 'groupmembersonly');
 
 /** Type of module */
@@ -3135,7 +3138,7 @@ function require_login($courseorid = null, $autologinguest = true, $cm = null, $
         }
     }
 
-    // Check visibility of activity to current user; includes visible flag, groupmembersonly, conditional availability, etc.
+    // Check visibility of activity to current user; includes visible flag, conditional availability, etc.
     if ($cm && !$cm->uservisible) {
         if ($preventredirect) {
             throw new require_login_exception('Activity is hidden');
@@ -3169,10 +3172,11 @@ function require_logout() {
     }
 
     // Execute hooks before action.
+    $authplugins = array();
     $authsequence = get_enabled_auth_plugins();
     foreach ($authsequence as $authname) {
-        $authplugin = get_auth_plugin($authname);
-        $authplugin->prelogout_hook();
+        $authplugins[$authname] = get_auth_plugin($authname);
+        $authplugins[$authname]->prelogout_hook();
     }
 
     // Store info that gets removed during logout.
@@ -3188,11 +3192,19 @@ function require_logout() {
         $event->add_record_snapshot('sessions', $session);
     }
 
+    // Clone of $USER object to be used by auth plugins.
+    $user = fullclone($USER);
+
     // Delete session record and drop $_SESSION content.
     \core\session\manager::terminate_current();
 
     // Trigger event AFTER action.
     $event->trigger();
+
+    // Hook to execute auth plugins redirection after event trigger.
+    foreach ($authplugins as $authplugin) {
+        $authplugin->postlogout_hook($user);
+    }
 }
 
 /**
@@ -3242,37 +3254,28 @@ function require_course_login($courseorid, $autologinguest = true, $cm = null, $
 
     } else if ($issite) {
         // Login for SITE not required.
-        if ($cm and empty($cm->visible)) {
-            // Hidden activities are not accessible without login.
-            require_login($courseorid, $autologinguest, $cm, $setwantsurltome, $preventredirect);
-        } else if ($cm and !empty($CFG->enablegroupmembersonly) and $cm->groupmembersonly) {
-            // Not-logged-in users do not have any group membership.
-            require_login($courseorid, $autologinguest, $cm, $setwantsurltome, $preventredirect);
-        } else {
-            // We still need to instatiate PAGE vars properly so that things that rely on it like navigation function correctly.
-            if (!empty($courseorid)) {
-                if (is_object($courseorid)) {
-                    $course = $courseorid;
-                } else {
-                    $course = clone($SITE);
-                }
-                if ($cm) {
-                    if ($cm->course != $course->id) {
-                        throw new coding_exception('course and cm parameters in require_course_login() call do not match!!');
-                    }
-                    $PAGE->set_cm($cm, $course);
-                    $PAGE->set_pagelayout('incourse');
-                } else {
-                    $PAGE->set_course($course);
-                }
+        // We still need to instatiate PAGE vars properly so that things that rely on it like navigation function correctly.
+        if (!empty($courseorid)) {
+            if (is_object($courseorid)) {
+                $course = $courseorid;
             } else {
-                // If $PAGE->course, and hence $PAGE->context, have not already been set up properly, set them up now.
-                $PAGE->set_course($PAGE->course);
+                $course = clone $SITE;
             }
-            // TODO: verify conditional activities here.
-            user_accesstime_log(SITEID);
-            return;
+            if ($cm) {
+                if ($cm->course != $course->id) {
+                    throw new coding_exception('course and cm parameters in require_course_login() call do not match!!');
+                }
+                $PAGE->set_cm($cm, $course);
+                $PAGE->set_pagelayout('incourse');
+            } else {
+                $PAGE->set_course($course);
+            }
+        } else {
+            // If $PAGE->course, and hence $PAGE->context, have not already been set up properly, set them up now.
+            $PAGE->set_course($PAGE->course);
         }
+        user_accesstime_log(SITEID);
+        return;
 
     } else {
         // Course login always required.
@@ -3600,9 +3603,20 @@ function fullname($user, $override=false) {
     if (isset($CFG->fullnamedisplay)) {
         $template = $CFG->fullnamedisplay;
     }
-    // If the template is empty, or set to language, or $override is set, return the language string.
-    if (empty($template) || $template == 'language' || $override) {
+    // If the template is empty, or set to language, return the language string.
+    if ((empty($template) || $template == 'language') && !$override) {
         return get_string('fullnamedisplay', null, $user);
+    }
+
+    // Check to see if we are displaying according to the alternative full name format.
+    if ($override) {
+        if (empty($CFG->alternativefullnameformat) || $CFG->alternativefullnameformat == 'language') {
+            // Default to show just the user names according to the fullnamedisplay string.
+            return get_string('fullnamedisplay', null, $user);
+        } else {
+            // If the override is true, then change the template to use the complete name.
+            $template = $CFG->alternativefullnameformat;
+        }
     }
 
     $requirednames = array();
@@ -3658,9 +3672,12 @@ function fullname($user, $override=false) {
  * @param string $tableprefix table query prefix to use in front of each field.
  * @param string $prefix prefix added to the name fields e.g. authorfirstname.
  * @param string $fieldprefix sql field prefix e.g. id AS userid.
+ * @param bool $order moves firstname and lastname to the top of the array / start of the string.
  * @return array|string All name fields.
  */
-function get_all_user_name_fields($returnsql = false, $tableprefix = null, $prefix = null, $fieldprefix = null) {
+function get_all_user_name_fields($returnsql = false, $tableprefix = null, $prefix = null, $fieldprefix = null, $order = false) {
+    // This array is provided in this order because when called by fullname() (above) if firstname is before
+    // firstnamephonetic str_replace() will change the wrong placeholder.
     $alternatenames = array('firstnamephonetic' => 'firstnamephonetic',
                             'lastnamephonetic' => 'lastnamephonetic',
                             'middlename' => 'middlename',
@@ -3672,6 +3689,19 @@ function get_all_user_name_fields($returnsql = false, $tableprefix = null, $pref
     if ($prefix) {
         foreach ($alternatenames as $key => $altname) {
             $alternatenames[$key] = $prefix . $altname;
+        }
+    }
+
+    // If we want the end result to have firstname and lastname at the front / top of the result.
+    if ($order) {
+        // Move the last two elements (firstname, lastname) off the array and put them at the top.
+        for ($i = 0; $i < 2; $i++) {
+            // Get the last element.
+            $lastelement = end($alternatenames);
+            // Remove it from the array.
+            unset($alternatenames[$lastelement]);
+            // Put the element back on the top of the array.
+            $alternatenames = array_merge(array($lastelement => $lastelement), $alternatenames);
         }
     }
 
@@ -4424,20 +4454,6 @@ function authenticate_user_login($username, $password, $ignorelockout=false, &$f
             return false;
         }
 
-        // Do not try to authenticate non-existent accounts when user creation is disabled.
-        if (!empty($CFG->authpreventaccountcreation)) {
-            $failurereason = AUTH_LOGIN_NOUSER;
-
-            // Trigger login failed event.
-            $event = \core\event\user_login_failed::create(array('other' => array('username' => $username,
-                    'reason' => $failurereason)));
-            $event->trigger();
-
-            error_log('[client '.getremoteaddr()."]  $CFG->wwwroot  Unknown user, can not create new accounts:  $username  ".
-                    $_SERVER['HTTP_USER_AGENT']);
-            return false;
-        }
-
         // User does not exist.
         $auths = $authsenabled;
         $user = new stdClass();
@@ -4490,8 +4506,21 @@ function authenticate_user_login($username, $password, $ignorelockout=false, &$f
                 $user = update_user_record_by_id($user->id);
             }
         } else {
-            // Create account, we verified above that user creation is allowed.
-            $user = create_user_record($username, $password, $auth);
+            // The user is authenticated but user creation may be disabled.
+            if (!empty($CFG->authpreventaccountcreation)) {
+                $failurereason = AUTH_LOGIN_UNAUTHORISED;
+
+                // Trigger login failed event.
+                $event = \core\event\user_login_failed::create(array('other' => array('username' => $username,
+                        'reason' => $failurereason)));
+                $event->trigger();
+
+                error_log('[client '.getremoteaddr()."]  $CFG->wwwroot  Unknown user, can not create new accounts:  $username  ".
+                        $_SERVER['HTTP_USER_AGENT']);
+                return false;
+            } else {
+                $user = create_user_record($username, $password, $auth);
+            }
         }
 
         $authplugin->sync_roles($user);
@@ -4736,6 +4765,8 @@ function update_internal_user_password($user, $password, $fasthash = false) {
 
     // Figure out what the hashed password should be.
     if (!isset($user->auth)) {
+        debugging('User record in update_internal_user_password() must include field auth',
+                DEBUG_DEVELOPER);
         $user->auth = $DB->get_field('user', 'auth', array('id' => $user->id));
     }
     $authplugin = get_auth_plugin($user->auth);

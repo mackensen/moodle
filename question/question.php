@@ -193,7 +193,7 @@ if ($wizardnow !== '') {
     $mform = $qtypeobj->create_editing_form('question.php', $question, $category, $contexts, $formeditable);
 }
 $toform = fullclone($question); // send the question object and a few more parameters to the form
-$toform->category = "$category->id,$category->contextid";
+$toform->category = "{$category->id},{$category->contextid}";
 $toform->scrollpos = $scrollpos;
 if ($formeditable && $id){
     $toform->categorymoveto = $toform->category;

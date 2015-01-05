@@ -52,7 +52,7 @@ if (isset($graderreportsilast)) {
 }
 
 $PAGE->set_url(new moodle_url('/grade/report/grader/index.php', array('id'=>$courseid)));
-$PAGE->requires->yui_module('moodle-gradereport_grader-scrollview', 'M.gradereport_grader.scrollview.init');
+$PAGE->requires->yui_module('moodle-gradereport_grader-gradereporttable', 'Y.M.gradereport_grader.init', null, null, true);
 
 // basic access checks
 if (!$course = $DB->get_record('course', array('id' => $courseid))) {
@@ -188,7 +188,7 @@ if ($USER->gradeediting[$course->id] && ($report->get_pref('showquickfeedback') 
     echo '<input type="hidden" value="grader" name="report"/>';
     echo '<input type="hidden" value="'.$page.'" name="page"/>';
     echo $reporthtml;
-    echo '<div class="submit"><input type="submit" id="gradersubmit" value="'.s(get_string('update')).'" /></div>';
+    echo '<div class="submit"><input type="submit" id="gradersubmit" value="'.s(get_string('savechanges')).'" /></div>';
     echo '</div></form>';
 } else {
     echo $reporthtml;
@@ -198,4 +198,13 @@ if ($USER->gradeediting[$course->id] && ($report->get_pref('showquickfeedback') 
 if (!empty($studentsperpage) && $studentsperpage >= 20) {
     echo $OUTPUT->paging_bar($numusers, $report->page, $studentsperpage, $report->pbarurl);
 }
+
+$event = \gradereport_grader\event\grade_report_viewed::create(
+    array(
+        'context' => $context,
+        'courseid' => $courseid,
+    )
+);
+$event->trigger();
+
 echo $OUTPUT->footer();
