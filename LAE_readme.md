@@ -1,4 +1,4 @@
-# [Moodle Liberal Arts Edition v2.7.3-LAE7.0.2]
+# [Moodle Liberal Arts Edition v2.8.1-LAE8.0.0]
 
 Welcome to the Moodle Liberal Arts Edition. The goal of the LAE is to provide a coherent package for modules, patches, and code developed (or improved) by the Collaborative Liberal Arts Moodle Project (CLAMP).
 
@@ -16,7 +16,7 @@ Questions about the LAE can be sent to Ken Newquist at <newquisk@lafayette.edu> 
 
 ## Contents
 
-Moodle 2.7.3+LAE7.0.2 consists of the core Moodle 2.7.3 release plus a number of CLAMP-developed features and bug fixes.
+Moodle 2.8.1+LAE8.0.0 consists of the core Moodle 2.8.1 release plus a number of CLAMP-developed features and bug fixes.
 
 The following core features are included:
 
@@ -49,10 +49,6 @@ CLAMP recommends the following contributed modules. If you have downloaded the "
 
 This block allows you to list a current term and a future term's courses first, based on whatever term-based naming convention you use in your Moodle courses' shortname field (e.g. FA11, SP12). It also allows you to specify a course category instead."
 
-### LAE Grader Report
-
-This is an alternative Grader Report for Moodle. It includes fixed scrolling on the vertical and horizontal axes and a new optional total display.
-
 ### OU Dates Report
 
 This course report, developed by Tim Hunt at the Open University, allows teachers to quickly edit date-aware items in course modules such as quizzes and assignments.
@@ -65,6 +61,10 @@ A block used to quickly send emails to members of a class, replicating similar f
 
 A course report which displays the user pictures for everyone enrolled in a course.
 
+### News Forum
+
+This local module creates a news forum on course creation. It resolves the issue described in <https://tracker.moodle.org/browse/MDL-26707>.
+
 ## Downloading the LAE
 
 You can get the LAE in two ways:
@@ -72,15 +72,15 @@ You can get the LAE in two ways:
 * Download the tar and zip packages from the CLAMP web site: <http://www.clamp-it.org/code/>
 * Download the current release branch from the CLAMP code repository:
 
-    git clone https://github.com/CLAMP-IT/moodle v2.7.3-LAE7.0.2
-    git checkout -b v2.7.3-LAE7.0.2
+    git clone https://github.com/CLAMP-IT/moodle v2.8.1-LAE8.0.0
+    git checkout -b v2.8.1-LAE8.0.0
 
-By default this is the "Package" version which includes the contributed modules. If you just want the core version of the LAE checkout the v2.7.3-LAE7.0.2-base tag instead.
+By default this is the "Package" version which includes the contributed modules. If you just want the core version of the LAE checkout the v2.8.1-LAE8.0.0-base tag instead.
 
 CLAMP maintains two branches for each major version:
 
-* LAE_27_STABLE contains the core code only
-* LAE_27_PACKAGE includes the contributed modules
+* LAE_28_STABLE contains the core code only
+* LAE_28_PACKAGE includes the contributed modules
 
 ## Installing the LAE
 
