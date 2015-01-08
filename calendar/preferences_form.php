@@ -51,16 +51,7 @@ class calendar_preferences_form extends moodleform {
         $mform->addElement('select', 'timeformat', get_string('pref_timeformat', 'calendar'), $options);
         $mform->addHelpButton('timeformat', 'pref_timeformat', 'calendar');
 
-        $options = array(
-            0 => get_string('sunday', 'calendar'),
-            1 => get_string('monday', 'calendar'),
-            2 => get_string('tuesday', 'calendar'),
-            3 => get_string('wednesday', 'calendar'),
-            4 => get_string('thursday', 'calendar'),
-            5 => get_string('friday', 'calendar'),
-            6 => get_string('saturday', 'calendar')
-        );
-        $mform->addElement('select', 'startwday', get_string('pref_startwday', 'calendar'), $options);
+        $mform->addElement('select', 'startwday', get_string('pref_startwday', 'calendar'), calendar_get_day_options());
         $mform->addHelpButton('startwday', 'pref_startwday', 'calendar');
 
         $options = array();

@@ -1719,6 +1719,24 @@ function calendar_print_month_selector($name, $selected) {
 }
 
 /**
+ * Generate indexed list of days for use in selectors.
+ *
+ * @return array of days
+ */
+function calendar_get_day_options() {
+    $options = array(
+        0 => get_string('sunday', 'calendar'),
+        1 => get_string('monday', 'calendar'),
+        2 => get_string('tuesday', 'calendar'),
+        3 => get_string('wednesday', 'calendar'),
+        4 => get_string('thursday', 'calendar'),
+        5 => get_string('friday', 'calendar'),
+        6 => get_string('saturday', 'calendar')
+    );
+    return $options;
+}
+
+/**
  * Checks to see if the requested type of event should be shown for the given user.
  *
  * @param CALENDAR_EVENT_GLOBAL|CALENDAR_EVENT_COURSE|CALENDAR_EVENT_GROUP|CALENDAR_EVENT_USER $type
@@ -2306,35 +2324,69 @@ class calendar_event {
                 $eventcopy = clone($this->properties);
                 unset($eventcopy->id);
 
-                for($i = 1; $i < $eventcopy->repeats; $i++) {
+                // Get original starting time of event offset from date.
+                $originalstarttime = getdate($eventcopy->timestart);
+                $originaltimeoffset = $originalstarttime['seconds']
+                        + ($originalstarttime['minutes'] * MINSECS)
+                        + ($originalstarttime['hours'] * HOURSECS);
 
-                    $eventcopy->timestart = ($eventcopy->timestart+WEEKSECS) + dst_offset_on($eventcopy->timestart) - dst_offset_on($eventcopy->timestart+WEEKSECS);
+                // If no days are selected then use the start time's date.
+                if (empty($eventcopy->repeat_day)) {
+                    $eventcopy->repeat_day[] = $originalstarttime['wday'];
+                }
 
-                    // Get the event id for the log record.
-                    $eventcopyid = $DB->insert_record('event', $eventcopy);
+                // Set timer to the beginning of the week.
+                $advancedtime = strtotime("last sunday", $eventcopy->timestart);
+                while ($advancedtime <= $eventcopy->repeat_end) {
+                    // Find the selected days in the week.
+                    foreach ($eventcopy->repeat_day as $key => $day) {
+                        $tempadvancedtime = $advancedtime + (($day - date('w', $advancedtime)) * DAYSECS) + $originaltimeoffset;
+                        $eventcopy->timestart = $tempadvancedtime
+                                + dst_offset_on($eventcopy->timestart)
+                                - dst_offset_on($tempadvancedtime);
 
-                    // If the context has been set delete all associated files
-                    if ($usingeditor) {
-                        $fs = get_file_storage();
-                        $files = $fs->get_area_files($this->editorcontext->id, 'calendar', 'event_description', $this->properties->id);
-                        foreach ($files as $file) {
-                            $fs->create_file_from_storedfile(array('itemid'=>$eventcopyid), $file);
+                        // Skip if in the past.
+                        if ($eventcopy->timestart < $this->properties->timestart) {
+                            continue;
+                        }
+
+                        // Skip if in the future.
+                        if ($eventcopy->timestart > $eventcopy->repeat_end) {
+                            continue;
+                        }
+
+                        // Do not duplicate the event.
+                        if ($eventcopy->timestart != $this->properties->timestart) {
+                            // Get the event id for the log record.
+                            $eventcopyid = $DB->insert_record('event', $eventcopy);
+
+                            // If the context has been set delete all associated files.
+                            if ($usingeditor) {
+                                $fs = get_file_storage();
+                                $files = $fs->get_area_files($this->editorcontext->id, 'calendar', 'event_description', $this->properties->id);
+                                foreach ($files as $file) {
+                                    $fs->create_file_from_storedfile(array('itemid' => $eventcopyid), $file);
+                                }
+                            }
+
+                            $repeatedids[] = $eventcopyid;
+
+                            // Trigger an event.
+                            $eventargs['objectid'] = $eventcopyid;
+                            $eventargs['other']['timestart'] = $eventcopy->timestart;
+                            $event = \core\event\calendar_event_created::create($eventargs);
+                            $event->trigger();
                         }
                     }
-
-                    $repeatedids[] = $eventcopyid;
-
-                    // Trigger an event.
-                    $eventargs['objectid'] = $eventcopyid;
-                    $eventargs['other']['timestart'] = $eventcopy->timestart;
-                    $event = \core\event\calendar_event_created::create($eventargs);
-                    $event->trigger();
+                    // Move to the next week.
+                    $advancedtime += (WEEKSECS * $this->properties->repeats);
                 }
+
+                // Hook for tracking added events.
+                self::calendar_event_hook('add_event', array($this->properties, $repeatedids));
+                return true;
             }
 
-            // Hook for tracking added events
-            self::calendar_event_hook('add_event', array($this->properties, $repeatedids));
-            return true;
         } else {
 
             if ($checkcapability) {
