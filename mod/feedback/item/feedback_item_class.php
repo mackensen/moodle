@@ -129,6 +129,15 @@ abstract class feedback_item_base {
     abstract public function print_item_show_value($item, $value = '');
 
     /**
+     * Print the item at the complete page of feedback
+     *
+     * @param object $item
+     * @param string $value
+     * @return string
+     */
+    abstract public function print_item_get_value($item, $value = '');
+
+    /**
      * cleans the userinput while submitting the form
      *
      * @param mixed $value
@@ -180,6 +189,8 @@ class feedback_item_pagebreak extends feedback_item_base {
     public function print_item_complete($item, $value = '', $highlightrequire = false) {
     }
     public function print_item_show_value($item, $value = '') {
+    }
+    public function print_item_get_value($item, $value = '') {
     }
     public function can_switch_require() {
     }

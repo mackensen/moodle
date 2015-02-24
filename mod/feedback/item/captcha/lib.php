@@ -250,6 +250,18 @@ class feedback_item_captcha extends feedback_item_base {
         }
     }
 
+    /** 
+     * Print the item on the completed page.
+     *
+     * @deprecated since Moodle 2.9 MDL-49286.
+     * @todo MDL-XXXXX This will be deleted in the future.
+     * @see feedback_item_captcha::print_item_get_value()
+     */
+    public function print_item_show_value($item, $value = '') {
+        debugging('print_item_show_value() is deprecated, please use print_item_get_value() instead.', DEBUG_DEVELOPER);
+        echo $this->print_item_get_value($item, $value);
+    }
+
     /**
      * print the item at the complete-page of feedback
      *
@@ -258,8 +270,8 @@ class feedback_item_captcha extends feedback_item_base {
      * @param string $value
      * @return void
      */
-    public function print_item_show_value($item, $value = '') {
-        global $DB;
+    public function print_item_get_value($item, $value = '') {
+        global $DB, $OUTPUT;
 
         $align = right_to_left() ? 'right' : 'left';
 
@@ -275,11 +287,10 @@ class feedback_item_captcha extends feedback_item_base {
         $requiredmark = '<img class="req" title="'.get_string('requiredelement', 'form').'" alt="'.
             get_string('requiredelement', 'form').'" src="'.$OUTPUT->pix_url('req') .'" />';
 
-        //print the question and label
-        echo '<div class="feedback_item_label_'.$align.'">';
-        echo '('.$item->label.') ';
-        echo format_text($item->name.$requiredmark, true, false, false);
-        echo '</div>';
+        // Print the question and label.
+        $html = html_writer::tag('div', "($item->label) " . format_text($item->name . $requiredmark, true, false, false),
+                array('class' => 'feedback_item_label_'.$align));
+        return $html;
     }
 
 

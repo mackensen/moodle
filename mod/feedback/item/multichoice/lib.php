@@ -501,6 +501,18 @@ class feedback_item_multichoice extends feedback_item_base {
     }
 
     /**
+     * Print the item on the completed page.
+     *
+     * @deprecated since Moodle 2.9 MDL-49286.
+     * @todo MDL-XXXXX This will be deleted in the future.
+     * @see feedback_item_multichoice::print_item_get_value()
+     */
+    public function print_item_show_value($item, $value = null) {
+        debugging('print_item_show_value() is deprecated, please use print_item_get_value() instead.', DEBUG_DEVELOPER);
+        echo $this->print_item_get_value($item, $value);
+    }
+
+    /**
      * print the item at the complete-page of feedback
      *
      * @global object
@@ -508,7 +520,7 @@ class feedback_item_multichoice extends feedback_item_base {
      * @param string $value
      * @return void
      */
-    public function print_item_show_value($item, $value = null) {
+    public function print_item_get_value($item, $value = null) {
         global $OUTPUT;
         $info = $this->get_info($item);
         $align = right_to_left() ? 'right' : 'left';
@@ -534,41 +546,41 @@ class feedback_item_multichoice extends feedback_item_base {
                 get_string('requiredelement', 'form').'" src="'.$OUTPUT->pix_url('req') .'" />';
         }
 
-        //print the question and label
-        echo '<div class="feedback_item_label_'.$align.'">';
-        echo '('.$item->label.') ';
-        echo format_text($item->name . $requiredmark, FORMAT_HTML, array('noclean' => true, 'para' => false));
-        echo '</div>';
+        // Print the question and label.
+        $html = html_writer::tag('div', "($item->label) " . format_text($item->name . $requiredmark,
+                FORMAT_HTML, array('noclean' => true, 'para' => false)),
+                array('class' => 'feedback_item_label_'.$align));
 
-        //print the presentation
-        echo '<div class="feedback_item_presentation_'.$align.'">';
+        // Print the presentation.
+        $html .= html_writer::start_tag('div', array('class' => 'feedback_item_presentation_'.$align));
         $index = 1;
         if ($info->subtype == 'c') {
-            echo $OUTPUT->box_start('generalbox boxalign'.$align);
+            $html .= $OUTPUT->box_start('generalbox boxalign'.$align);
             foreach ($presentation as $pres) {
                 foreach ($values as $val) {
                     if ($val == $index) {
-                        echo '<div class="feedback_item_multianswer">';
-                        echo format_text($pres, FORMAT_HTML, array('noclean' => true, 'para' => false));
-                        echo '</div>';
+                        $html .= html_writer::tag('div',
+                                format_text($pres, FORMAT_HTML, array('noclean' => true, 'para' => false)),
+                                array('class' => 'feedback_item_multianswer'));
                         break;
                     }
                 }
                 $index++;
             }
-            echo $OUTPUT->box_end();
+            $html .= $OUTPUT->box_end();
         } else {
             foreach ($presentation as $pres) {
                 if ($value == $index) {
-                    echo $OUTPUT->box_start('generalbox boxalign'.$align);
-                    echo format_text($pres, FORMAT_HTML, array('noclean' => true, 'para' => false));
-                    echo $OUTPUT->box_end();
+                    $html .= $OUTPUT->box_start('generalbox boxalign'.$align);
+                    $html .= format_text($pres, FORMAT_HTML, array('noclean' => true, 'para' => false));
+                    $html .= $OUTPUT->box_end();
                     break;
                 }
                 $index++;
             }
         }
-        echo '</div>';
+        $html .= html_writer::end_tag('div');
+        return $html;
     }
 
     public function check_value($value, $item) {

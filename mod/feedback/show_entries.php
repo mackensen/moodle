@@ -332,9 +332,9 @@ if ($do_show == 'showoneentry') {
             if ($feedbackitem->typ != 'pagebreak') {
                 echo $OUTPUT->box_start('box generalbox boxalign_'.$align);
                 if (isset($value->value)) {
-                    feedback_print_item_show_value($feedbackitem, $value->value);
+                    echo feedback_print_item_get_value($feedbackitem, $value->value);
                 } else {
-                    feedback_print_item_show_value($feedbackitem, false);
+                    echo feedback_print_item_get_value($feedbackitem, false);
                 }
                 echo $OUTPUT->box_end();
             }

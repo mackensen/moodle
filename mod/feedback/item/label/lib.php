@@ -168,7 +168,7 @@ class feedback_item_label extends feedback_item_base {
                                                $item->id);
 
         $formatoptions = array('overflowdiv'=>true, 'trusted'=>$CFG->enabletrusttext);
-        echo format_text($output, FORMAT_HTML, $formatoptions);
+        return format_text($output, FORMAT_HTML, $formatoptions);
     }
 
     /**
@@ -188,7 +188,7 @@ class feedback_item_label extends feedback_item_base {
                 echo '</span>';
             }
         }
-        $this->print_item($item);
+        echo $this->print_item($item);
     }
 
     /**
@@ -201,7 +201,19 @@ class feedback_item_label extends feedback_item_base {
      * @return void
      */
     public function print_item_complete($item, $value = '', $highlightrequire = false) {
-        $this->print_item($item);
+        echo $this->print_item($item);
+    }
+
+    /** 
+     * Print the item on the completed page.
+     *
+     * @deprecated since Moodle 2.9 MDL-49286.
+     * @todo MDL-XXXXX This will be deleted in the future.
+     * @see feedback_item_label::print_item_get_value()
+     */
+    public function print_item_show_value($item, $value = '') {
+        debugging('print_item_show_value() is deprecated, please use print_item_get_value() instead.', DEBUG_DEVELOPER);
+        echo $this->print_item($item);
     }
 
     /**
@@ -212,8 +224,8 @@ class feedback_item_label extends feedback_item_base {
      * @param string $value
      * @return void
      */
-    public function print_item_show_value($item, $value = '') {
-        $this->print_item($item);
+    public function print_item_get_value($item, $value = '') {
+        return $this->print_item($item);
     }
 
     public function create_value($data) {

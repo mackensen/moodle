@@ -1813,14 +1813,27 @@ function feedback_print_item_complete($item, $value = false, $highlightrequire =
  * @return void
  */
 function feedback_print_item_show_value($item, $value = false) {
-    global $CFG;
+    debugging('feedback_print_item_show_value() is deprecated, please use feedback_print_item_get_value() instead.',
+            DEBUG_DEVELOPER);
+    echo feedback_print_item_get_value($item, $value);
+}
+
+/**
+ * Returns the given item for the show entries page.
+ * Each item class has its own print_item_get_value function implemented.
+ *
+ * @param object $item the item we want to display
+ * @param mixed $value
+ * @return string
+ */
+function feedback_print_item_get_value($item, $value = false) {
     if ($item->typ == 'pagebreak') {
         return;
     }
 
-    //get the instance of the item-class
+    // Get the instance of the item class.
     $itemobj = feedback_get_item_class($item->typ);
-    $itemobj->print_item_show_value($item, $value);
+    return $itemobj->print_item_get_value($item, $value);
 }
 
 /**

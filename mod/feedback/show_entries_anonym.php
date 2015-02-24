@@ -233,7 +233,7 @@ if ($showcompleted) {
             if ($feedbackitem->typ != 'pagebreak') {
                 echo $OUTPUT->box_start('box generalbox boxalign_'.$align);
                 $itemvalue = isset($value->value) ? $value->value : false;
-                feedback_print_item_show_value($feedbackitem, $itemvalue);
+                echo feedback_print_item_get_value($feedbackitem, $itemvalue);
                 echo $OUTPUT->box_end();
             }
             echo $OUTPUT->box_end();

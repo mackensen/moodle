@@ -341,6 +341,18 @@ class feedback_item_info extends feedback_item_base {
         echo '</div>';
     }
 
+    /** 
+     * Print the item on the completed page.
+     *
+     * @deprecated since Moodle 2.9 MDL-49286.
+     * @todo MDL-XXXXX This will be deleted in the future.
+     * @see feedback_item_info::print_item_get_value()
+     */
+    public function print_item_show_value($item, $value = '') {
+        debugging('print_item_show_value() is deprecated, please use print_item_get_value() instead.', DEBUG_DEVELOPER);
+        echo $this->print_item_get_value($item, $value);
+    }
+
     /**
      * print the item at the complete-page of feedback
      *
@@ -349,8 +361,8 @@ class feedback_item_info extends feedback_item_base {
      * @param string $value
      * @return void
      */
-    public function print_item_show_value($item, $value = '') {
-        global $USER, $DB, $OUTPUT;
+    public function print_item_get_value($item, $value = '') {
+        global $OUTPUT;
         $align = right_to_left() ? 'right' : 'left';
 
         $presentation = $item->presentation;
@@ -361,16 +373,15 @@ class feedback_item_info extends feedback_item_base {
             $value = $value ? userdate($value) : '&nbsp;';
         }
 
-        //print the question and label
-        echo '<div class="feedback_item_label_'.$align.'">';
-            echo '('.$item->label.') ';
-            echo format_text($item->name . $requiredmark, true, false, false);
-        echo '</div>';
+        // Print the question and label.
+        $html = html_writer::tag('div', "($item->label) " . format_text($item->name . $requiredmark, true, false, false),
+                array('class' => 'feedback_item_label_'.$align));
 
-        //print the presentation
-        echo $OUTPUT->box_start('generalbox boxalign'.$align);
-        echo $value;
-        echo $OUTPUT->box_end();
+        // Print the presentation.
+        $html .= $OUTPUT->box_start('generalbox boxalign'.$align);
+        $html .= $value;
+        $html .= $OUTPUT->box_end();
+        return $html;
     }
 
     public function check_value($value, $item) {
