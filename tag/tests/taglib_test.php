@@ -201,7 +201,7 @@ class core_tag_taglib_testcase extends advanced_testcase {
         $usertags = $DB->count_records('tag_instance', array('itemtype' => 'user'));
         $usercount = $DB->count_records('user', array('deleted' => 0));
         // Remove admin and guest from the count.
-        $this->assertEquals($usertags, ($usercount - 2));
+        $this->assertEquals($usertags, ($usercount - 3));
 
         // Test clean up where a course has been removed.
         // Delete the course. This also needs to be this way otherwise the tags are removed by using the proper function.
