@@ -1988,12 +1988,8 @@ function readstring_accel($string, $mimetype, $accelerate) {
 function send_temp_file($path, $filename, $pathisstring=false) {
     global $CFG;
 
-    if (core_useragent::is_firefox()) {
-        // only FF is known to correctly save to disk before opening...
-        $mimetype = mimeinfo('type', $filename);
-    } else {
-        $mimetype = 'application/x-forcedownload';
-    }
+    // Set an accurate mimetype.
+    $mimetype = mimeinfo('type', $filename);
 
     // close session - not needed anymore
     \core\session\manager::write_close();
@@ -2077,11 +2073,7 @@ function send_file($path, $filename, $lifetime = null , $filter=0, $pathisstring
     \core\session\manager::write_close(); // Unlock session during file serving.
 
     // Use given MIME type if specified, otherwise guess it using mimeinfo.
-    // IE, Konqueror and Opera open html file directly in browser from web even when directed to save it to disk :-O
-    // only Firefox saves all files locally before opening when content-disposition: attachment stated
-    $isFF         = core_useragent::is_firefox(); // only FF properly tested
-    $mimetype     = ($forcedownload and !$isFF) ? 'application/x-forcedownload' :
-                         ($mimetype ? $mimetype : mimeinfo('type', $filename));
+    $mimetype = (empty($mimetype) ? mimeinfo('type', $filename) : $mimetype);
 
     // if user is using IE, urlencode the filename so that multibyte file name will show up correctly on popup
     if (core_useragent::is_ie()) {
@@ -2255,12 +2247,8 @@ function send_stored_file($stored_file, $lifetime=null, $filter=0, $forcedownloa
     \core\session\manager::write_close(); // Unlock session during file serving.
 
     // Use given MIME type if specified, otherwise guess it using mimeinfo.
-    // IE, Konqueror and Opera open html file directly in browser from web even when directed to save it to disk :-O
-    // only Firefox saves all files locally before opening when content-disposition: attachment stated
     $filename     = is_null($filename) ? $stored_file->get_filename() : $filename;
-    $isFF         = core_useragent::is_firefox(); // only FF properly tested
-    $mimetype     = ($forcedownload and !$isFF) ? 'application/x-forcedownload' :
-                         ($stored_file->get_mimetype() ? $stored_file->get_mimetype() : mimeinfo('type', $filename));
+    $mimetype     = ($stored_file->get_mimetype() ? $stored_file->get_mimetype() : mimeinfo('type', $filename));
 
     // if user is using IE, urlencode the filename so that multibyte file name will show up correctly on popup
     if (core_useragent::is_ie()) {
