@@ -52,7 +52,7 @@ Feature: Random glossary entry block is used in a course
       | Concept    | Concept1    |
       | Definition | Definition1 |
     And I press "Save changes"
-    And I follow "Course 1"
+    And I follow "C1"
     And I should see "Concept1" in the "AutoGlossaryblock" "block"
     And I should see "Definition1" in the "AutoGlossaryblock" "block"
     And I should not see "There are no entries yet in the chosen glossary" in the "AutoGlossaryblock" "block"
@@ -61,7 +61,7 @@ Feature: Random glossary entry block is used in a course
       | Concept    | Concept2    |
       | Definition | Definition2 |
     And I press "Save changes"
-    And I follow "Course 1"
+    And I follow "C1"
     # Only the last entry appears in the block
     And I should not see "Concept1" in the "AutoGlossaryblock" "block"
     And I should not see "Definition1" in the "AutoGlossaryblock" "block"
