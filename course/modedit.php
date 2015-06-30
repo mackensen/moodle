@@ -28,7 +28,6 @@ require_once("lib.php");
 require_once($CFG->libdir.'/filelib.php');
 require_once($CFG->libdir.'/gradelib.php');
 require_once($CFG->libdir.'/completionlib.php');
-require_once($CFG->libdir.'/conditionlib.php');
 require_once($CFG->libdir.'/plagiarismlib.php');
 require_once($CFG->dirroot . '/course/modlib.php');
 
@@ -190,6 +189,10 @@ if (!empty($add)) {
                                              'iteminstance'=>$data->instance, 'courseid'=>$course->id))) {
         // add existing outcomes
         foreach ($items as $item) {
+            if (!empty($item->gradepass)) {
+                $decimalpoints = $item->get_decimals();
+                $data->gradepass = format_float($item->gradepass, $decimalpoints);
+            }
             if (!empty($item->outcomeid)) {
                 $data->{'outcome_'.$item->outcomeid} = 1;
             }

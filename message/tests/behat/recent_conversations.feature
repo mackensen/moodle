@@ -13,7 +13,7 @@ Feature: Recent conversations contains my recent conversations
 
   Scenario: View that I don't have recent conversations
     Given I log in as "user1"
-    And I navigate to "Messages" node in "My profile"
+    And I follow "Messages" in the user menu
     When I set the field "Message navigation:" to "Recent conversations"
     Then I should not see "User Two"
     And I should not see "User Three"
@@ -22,7 +22,7 @@ Feature: Recent conversations contains my recent conversations
     Given I log in as "user1"
     And I send "Message from user1 to user2" message to "User Two" user
     And I send "Message from user1 to user3" message to "User Three" user
-    And I navigate to "Messages" node in "My profile"
+    And I follow "Messages" in the user menu
     When I set the field "Message navigation:" to "Recent conversations"
     Then I should see "User Two"
     And I should see "User Three"
@@ -30,7 +30,7 @@ Feature: Recent conversations contains my recent conversations
     And I should see "Message from user1 to user3"
     And I log out
     And I log in as "user2"
-    And I navigate to "Messages" node in "My profile"
+    And I follow "Messages" in the user menu
     And I set the field "Message navigation:" to "Recent conversations"
     And I should see "Message from user1 to user2"
     And I should not see "Message from user1 to user3"

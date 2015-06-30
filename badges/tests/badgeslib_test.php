@@ -41,8 +41,6 @@ class core_badges_badgeslib_testcase extends advanced_testcase {
         global $DB, $CFG;
         $this->resetAfterTest(true);
 
-        unset_config('noemailever');
-
         $CFG->enablecompletion = true;
 
         $user = $this->getDataGenerator()->create_user();
@@ -152,6 +150,28 @@ class core_badges_badgeslib_testcase extends advanced_testcase {
         $criteria_profile->save($params);
 
         $this->assertCount(2, $badge->get_criteria());
+    }
+
+    public function test_add_badge_criteria_description() {
+        $criteriaoverall = award_criteria::build(array('criteriatype' => BADGE_CRITERIA_TYPE_OVERALL, 'badgeid' => $this->badgeid));
+        $criteriaoverall->save(array(
+                'agg' => BADGE_CRITERIA_AGGREGATION_ALL,
+                'description' => 'Overall description',
+                'descriptionformat' => FORMAT_HTML
+        ));
+
+        $criteriaprofile = award_criteria::build(array('criteriatype' => BADGE_CRITERIA_TYPE_PROFILE, 'badgeid' => $this->badgeid));
+        $params = array(
+                'agg' => BADGE_CRITERIA_AGGREGATION_ALL,
+                'field_address' => 'address',
+                'description' => 'Description',
+                'descriptionformat' => FORMAT_HTML
+        );
+        $criteriaprofile->save($params);
+
+        $badge = new badge($this->badgeid);
+        $this->assertEquals('Overall description', $badge->criteria[BADGE_CRITERIA_TYPE_OVERALL]->description);
+        $this->assertEquals('Description', $badge->criteria[BADGE_CRITERIA_TYPE_PROFILE]->description);
     }
 
     public function test_delete_badge_criteria() {

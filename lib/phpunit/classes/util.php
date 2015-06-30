@@ -107,10 +107,13 @@ class phpunit_util extends testing_util {
         phpunit_util::stop_message_redirection();
 
         // Stop any message redirection.
-        phpunit_util::stop_phpmailer_redirection();
-
-        // Stop any message redirection.
         phpunit_util::stop_event_redirection();
+
+        // Start a new email redirection.
+        // This will clear any existing phpmailer redirection.
+        // We redirect all phpmailer output to this message sink which is
+        // called instead of phpmailer actually sending the message.
+        phpunit_util::start_phpmailer_redirection();
 
         // We used to call gc_collect_cycles here to ensure desctructors were called between tests.
         // This accounted for 25% of the total time running phpunit - so we removed it.
@@ -160,6 +163,15 @@ class phpunit_util extends testing_util {
                 $warnings[] = 'Warning: unexpected change of $COURSE';
             }
 
+            if ($CFG->ostype === 'WINDOWS') {
+                if (setlocale(LC_TIME, 0) !== 'English_Australia.1252') {
+                    $warnings[] = 'Warning: unexpected change of locale';
+                }
+            } else {
+                if (setlocale(LC_TIME, 0) !== 'en_AU.UTF-8') {
+                    $warnings[] = 'Warning: unexpected change of locale';
+                }
+            }
         }
 
         if (ini_get('max_execution_time') != 0) {
@@ -202,6 +214,8 @@ class phpunit_util extends testing_util {
         core_text::reset_caches();
         get_message_processors(false, true);
         filter_manager::reset_caches();
+        core_filetypes::reset_caches();
+
         // Reset internal users.
         core_user::reset_internal_users();
 
@@ -236,6 +250,16 @@ class phpunit_util extends testing_util {
 
         // fix PHP settings
         error_reporting($CFG->debug);
+
+        // Reset the date/time class.
+        core_date::phpunit_reset();
+
+        // Make sure the time locale is consistent - that is Australian English.
+        if ($CFG->ostype === 'WINDOWS') {
+            setlocale(LC_TIME, 'English_Australia.1252');
+        } else {
+            setlocale(LC_TIME, 'en_AU.UTF-8');
+        }
 
         // verify db writes just in case something goes wrong in reset
         if (self::$lastdbwrites != $DB->perf_get_writes()) {
@@ -417,10 +441,6 @@ class phpunit_util extends testing_util {
         // We need to keep the installed dataroot filedir files.
         // So each time we reset the dataroot before running a test, the default files are still installed.
         self::save_original_data_files();
-
-        // install timezone info
-        $timezones = get_records_csv($CFG->libdir.'/timezone.txt', 'timezone');
-        update_timezone_records($timezones);
 
         // Store version hash in the database and in a file.
         self::store_versions_hash();
@@ -678,9 +698,11 @@ class phpunit_util extends testing_util {
      */
     public static function start_phpmailer_redirection() {
         if (self::$phpmailersink) {
-            self::stop_phpmailer_redirection();
+            // If an existing mailer sink is active, just clear it.
+            self::$phpmailersink->clear();
+        } else {
+            self::$phpmailersink = new phpunit_phpmailer_sink();
         }
-        self::$phpmailersink = new phpunit_phpmailer_sink();
         return self::$phpmailersink;
     }
 

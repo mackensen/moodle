@@ -609,6 +609,9 @@ class assign {
         if (!empty($formdata->maxattempts)) {
             $update->maxattempts = $formdata->maxattempts;
         }
+        if (isset($formdata->preventsubmissionnotingroup)) {
+            $update->preventsubmissionnotingroup = $formdata->preventsubmissionnotingroup;
+        }
         $update->markingworkflow = $formdata->markingworkflow;
         $update->markingallocation = $formdata->markingallocation;
         if (empty($update->markingworkflow)) { // If marking workflow is disabled, make sure allocation is disabled.
@@ -969,6 +972,9 @@ class assign {
         }
         if (!empty($formdata->maxattempts)) {
             $update->maxattempts = $formdata->maxattempts;
+        }
+        if (isset($formdata->preventsubmissionnotingroup)) {
+            $update->preventsubmissionnotingroup = $formdata->preventsubmissionnotingroup;
         }
         $update->markingworkflow = $formdata->markingworkflow;
         $update->markingallocation = $formdata->markingallocation;
@@ -1443,11 +1449,12 @@ class assign {
 
             // When a specific group is selected we don't count the default group users.
             if ($activitygroup == 0) {
-
-                // See if there are any users in the default group.
-                $defaultusers = $this->get_submission_group_members(0, true);
-                if (count($defaultusers) > 0) {
-                    $count += 1;
+                if (empty($this->get_instance()->preventsubmissionnotingroup)) {
+                    // See if there are any users in the default group.
+                    $defaultusers = $this->get_submission_group_members(0, true);
+                    if (count($defaultusers) > 0) {
+                        $count += 1;
+                    }
                 }
             }
         } else {
@@ -1456,7 +1463,7 @@ class assign {
             foreach ($participants as $participant) {
                 if ($group = $this->get_submission_group($participant->id)) {
                     $groups[$group->id] = true;
-                } else {
+                } else if (empty($this->get_instance()->preventsubmissionnotingroup)) {
                     $groups[0] = true;
                 }
             }
@@ -3054,7 +3061,8 @@ class assign {
                                                              '',
                                                              $instance->attemptreopenmethod,
                                                              $instance->maxattempts,
-                                                             $this->get_grading_status($userid));
+                                                             $this->get_grading_status($userid),
+                                                             $instance->preventsubmissionnotingroup);
             $o .= $this->get_renderer()->render($submissionstatus);
         }
 
@@ -3466,6 +3474,9 @@ class assign {
         $userid = optional_param('userid', $USER->id, PARAM_INT);
         $user = $DB->get_record('user', array('id'=>$userid), '*', MUST_EXIST);
         if ($userid == $USER->id) {
+            if (!$this->can_edit_submission($userid, $USER->id)) {
+                print_error('nopermission');
+            }
             // User is editing their own submission.
             require_capability('mod/assign:submit', $this->context);
             $title = get_string('editsubmission', 'assign');
@@ -3843,7 +3854,7 @@ class assign {
 
         $submissionstatement = '';
         if (!empty($adminconfig->submissionstatement)) {
-            // Format the submissino statement before its sent. We turn off para because this is going within
+            // Format the submission statement before its sent. We turn off para because this is going within
             // a form element.
             $options = array(
                 'context' => $this->get_context(),
@@ -3919,7 +3930,7 @@ class assign {
             }
 
             $showsubmit = ($showlinks && $this->submissions_open($user->id));
-            $showsubmit = ($showsubmit && $this->show_submit_button($submission, $teamsubmission));
+            $showsubmit = ($showsubmit && $this->show_submit_button($submission, $teamsubmission, $user->id));
 
             $extensionduedate = null;
             if ($flags) {
@@ -3955,7 +3966,8 @@ class assign {
                                                               $gradingcontrollerpreview,
                                                               $instance->attemptreopenmethod,
                                                               $instance->maxattempts,
-                                                              $gradingstatus);
+                                                              $gradingstatus,
+                                                              $instance->preventsubmissionnotingroup);
             if (has_capability('mod/assign:submit', $this->get_context(), $user)) {
                 $o .= $this->get_renderer()->render($submissionstatus);
             }
@@ -4060,9 +4072,10 @@ class assign {
      *
      * @param stdClass $submission The users own submission record.
      * @param stdClass $teamsubmission The users team submission record if there is one
+     * @param int $userid The user
      * @return bool
      */
-    protected function show_submit_button($submission = null, $teamsubmission = null) {
+    protected function show_submit_button($submission = null, $teamsubmission = null, $userid = null) {
         if ($teamsubmission) {
             if ($teamsubmission->status === ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
                 // The assignment submission has been completed.
@@ -4072,6 +4085,11 @@ class assign {
                 return false;
             } else if ($submission && $submission->status === ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
                 // The user has already clicked the submit button on the team submission.
+                return false;
+            } else if (
+                !empty($this->get_instance()->preventsubmissionnotingroup)
+                && $this->get_submission_group($userid) == false
+            ) {
                 return false;
             }
         } else if ($submission) {
@@ -4232,6 +4250,9 @@ class assign {
             $activitygroup = groups_get_activity_group($this->get_course_module());
 
             if ($instance->teamsubmission) {
+                $defaultteammembers = $this->get_submission_group_members(0, true);
+                $warnofungroupedusers = (count($defaultteammembers) > 0 && $instance->preventsubmissionnotingroup);
+
                 $summary = new assign_grading_summary($this->count_teams($activitygroup),
                                                       $instance->submissiondrafts,
                                                       $this->count_submissions_with_status($draft),
@@ -4241,7 +4262,8 @@ class assign {
                                                       $instance->duedate,
                                                       $this->get_course_module()->id,
                                                       $this->count_submissions_need_grading(),
-                                                      $instance->teamsubmission);
+                                                      $instance->teamsubmission,
+                                                      $warnofungroupedusers);
                 $o .= $this->get_renderer()->render($summary);
             } else {
                 // The active group has already been updated in groups_print_activity_menu().
@@ -4255,7 +4277,8 @@ class assign {
                                                       $instance->duedate,
                                                       $this->get_course_module()->id,
                                                       $this->count_submissions_need_grading(),
-                                                      $instance->teamsubmission);
+                                                      $instance->teamsubmission,
+                                                      false);
                 $o .= $this->get_renderer()->render($summary);
             }
         }
@@ -4578,14 +4601,6 @@ class assign {
     public function render_area_files($component, $area, $submissionid) {
         global $USER;
 
-        $fs = get_file_storage();
-        $browser = get_file_browser();
-        $files = $fs->get_area_files($this->get_context()->id,
-                                     $component,
-                                     $area,
-                                     $submissionid,
-                                     'timemodified',
-                                     false);
         return $this->get_renderer()->assign_files($this->context, $submissionid, $area, $component);
 
     }
@@ -4602,6 +4617,14 @@ class assign {
 
         if (empty($graderid)) {
             $graderid = $USER->id;
+        }
+
+        $instance = $this->get_instance();
+        if ($userid == $graderid &&
+            $instance->teamsubmission &&
+            $instance->preventsubmissionnotingroup &&
+            $this->get_submission_group($userid) == false) {
+            return false;
         }
 
         if ($userid == $graderid &&
@@ -5115,7 +5138,7 @@ class assign {
 
         $submissionstatement = '';
         if (!empty($adminconfig->submissionstatement)) {
-            // Format the submissino statement before its sent. We turn off para because this is going within
+            // Format the submission statement before its sent. We turn off para because this is going within
             // a form element.
             $options = array(
                 'context' => $this->get_context(),
@@ -6332,7 +6355,7 @@ class assign {
 
             $submissionstatement = '';
             if (!empty($adminconfig->submissionstatement)) {
-                // Format the submissino statement before its sent. We turn off para because this is going within
+                // Format the submission statement before its sent. We turn off para because this is going within
                 // a form element.
                 $options = array(
                     'context' => $this->get_context(),

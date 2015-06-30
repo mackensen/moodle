@@ -297,7 +297,7 @@ function xmldb_scorm_upgrade($oldversion) {
     // Moodle v2.8.0 release upgrade line.
     // Put any upgrade step following this.
 
-    if ($oldversion < 2014111001) {
+    if ($oldversion < 2015031800) {
 
         // Check to see if this site has any AICC packages - if so set the aiccuserid to pass the username
         // so that the data remains consistent with existing packages.
@@ -312,7 +312,7 @@ function xmldb_scorm_upgrade($oldversion) {
             }
         }
         // Scorm savepoint reached.
-        upgrade_mod_savepoint(true, 2014111001, 'scorm');
+        upgrade_mod_savepoint(true, 2015031800, 'scorm');
     }
 
     return true;

@@ -56,8 +56,10 @@ function external_function_info($function, $strictness=MUST_EXIST) {
         }
     }
 
+    $function->ajax_method = $function->methodname.'_is_allowed_from_ajax';
     $function->parameters_method = $function->methodname.'_parameters';
     $function->returns_method    = $function->methodname.'_returns';
+    $function->deprecated_method = $function->methodname.'_is_deprecated';
 
     // make sure the implementaion class is ok
     if (!method_exists($function->classname, $function->methodname)) {
@@ -68,6 +70,17 @@ function external_function_info($function, $strictness=MUST_EXIST) {
     }
     if (!method_exists($function->classname, $function->returns_method)) {
         throw new coding_exception('Missing returned values description');
+    }
+    if (method_exists($function->classname, $function->deprecated_method)) {
+        if (call_user_func(array($function->classname, $function->deprecated_method)) === true) {
+            $function->deprecated = true;
+        }
+    }
+    $function->allowed_from_ajax = false;
+    if (method_exists($function->classname, $function->ajax_method)) {
+        if (call_user_func(array($function->classname, $function->ajax_method)) === true) {
+            $function->allowed_from_ajax = true;
+        }
     }
 
     // fetch the parameters description

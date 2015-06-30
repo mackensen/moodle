@@ -503,6 +503,14 @@ class backup_course_structure_step extends backup_structure_step {
  */
 class backup_enrolments_structure_step extends backup_structure_step {
 
+    /**
+     * Skip enrolments on the front page.
+     * @return bool
+     */
+    protected function execute_condition() {
+        return ($this->get_courseid() != SITEID);
+    }
+
     protected function define_structure() {
 
         // To know if we are including users
@@ -817,7 +825,7 @@ class backup_badges_structure_step extends backup_structure_step {
 
         $criteria = new backup_nested_element('criteria');
         $criterion = new backup_nested_element('criterion', array('id'), array('badgeid',
-                'criteriatype', 'method'));
+                'criteriatype', 'method', 'description', 'descriptionformat'));
 
         $parameters = new backup_nested_element('parameters');
         $parameter = new backup_nested_element('parameter', array('id'), array('critid',
@@ -922,7 +930,12 @@ class backup_gradebook_structure_step extends backup_structure_step {
      * the module gradeitems have been already included in backup
      */
     protected function execute_condition() {
-        return backup_plan_dbops::require_gradebook_backup($this->get_courseid(), $this->get_backupid());
+        $courseid = $this->get_courseid();
+        if ($courseid == SITEID) {
+            return false;
+        }
+
+        return backup_plan_dbops::require_gradebook_backup($courseid, $this->get_backupid());
     }
 
     protected function define_structure() {
@@ -1036,7 +1049,12 @@ class backup_grade_history_structure_step extends backup_structure_step {
      * because we do not want to save the history of items which are not backed up. At least for now.
      */
     protected function execute_condition() {
-        return backup_plan_dbops::require_gradebook_backup($this->get_courseid(), $this->get_backupid());
+        $courseid = $this->get_courseid();
+        if ($courseid == SITEID) {
+            return false;
+        }
+
+        return backup_plan_dbops::require_gradebook_backup($courseid, $this->get_backupid());
     }
 
     protected function define_structure() {
@@ -1089,6 +1107,14 @@ class backup_grade_history_structure_step extends backup_structure_step {
  */
 class backup_userscompletion_structure_step extends backup_structure_step {
 
+    /**
+     * Skip completion on the front page.
+     * @return bool
+     */
+    protected function execute_condition() {
+        return ($this->get_courseid() != SITEID);
+    }
+
     protected function define_structure() {
 
         // Define each element separated
@@ -1123,8 +1149,10 @@ class backup_groups_structure_step extends backup_structure_step {
 
     protected function define_structure() {
 
-        // To know if we are including users
-        $users = $this->get_setting_value('users');
+        // To know if we are including users.
+        $userinfo = $this->get_setting_value('users');
+        // To know if we are including groups and groupings.
+        $groupinfo = $this->get_setting_value('groups');
 
         // Define each element separated
 
@@ -1164,26 +1192,28 @@ class backup_groups_structure_step extends backup_structure_step {
 
         // Define sources
 
-        $group->set_source_sql("
-            SELECT g.*
-              FROM {groups} g
-              JOIN {backup_ids_temp} bi ON g.id = bi.itemid
-             WHERE bi.backupid = ?
-               AND bi.itemname = 'groupfinal'", array(backup::VAR_BACKUPID));
+        // This only happens if we are including groups/groupings.
+        if ($groupinfo) {
+            $group->set_source_sql("
+                SELECT g.*
+                  FROM {groups} g
+                  JOIN {backup_ids_temp} bi ON g.id = bi.itemid
+                 WHERE bi.backupid = ?
+                   AND bi.itemname = 'groupfinal'", array(backup::VAR_BACKUPID));
 
-        // This only happens if we are including users
-        if ($users) {
-            $member->set_source_table('groups_members', array('groupid' => backup::VAR_PARENTID));
+            $grouping->set_source_sql("
+                SELECT g.*
+                  FROM {groupings} g
+                  JOIN {backup_ids_temp} bi ON g.id = bi.itemid
+                 WHERE bi.backupid = ?
+                   AND bi.itemname = 'groupingfinal'", array(backup::VAR_BACKUPID));
+            $groupinggroup->set_source_table('groupings_groups', array('groupingid' => backup::VAR_PARENTID));
+
+            // This only happens if we are including users.
+            if ($userinfo) {
+                $member->set_source_table('groups_members', array('groupid' => backup::VAR_PARENTID));
+            }
         }
-
-        $grouping->set_source_sql("
-            SELECT g.*
-              FROM {groupings} g
-              JOIN {backup_ids_temp} bi ON g.id = bi.itemid
-             WHERE bi.backupid = ?
-               AND bi.itemname = 'groupingfinal'", array(backup::VAR_BACKUPID));
-
-        $groupinggroup->set_source_table('groupings_groups', array('groupingid' => backup::VAR_PARENTID));
 
         // Define id annotations (as final)
 
@@ -1215,7 +1245,7 @@ class backup_users_structure_step extends backup_structure_step {
         // To know if we are including role assignments
         $roleassignments = $this->get_setting_value('role_assignments');
 
-        // Define each element separated
+        // Define each element separate.
 
         $users = new backup_nested_element('users');
 
@@ -1618,6 +1648,7 @@ class backup_main_structure_step extends backup_structure_step {
         $info['original_site_identifier_hash'] = md5(get_site_identifier());
         $info['original_course_id'] = $this->get_courseid();
         $originalcourseinfo = backup_controller_dbops::backup_get_original_course_info($this->get_courseid());
+        $info['original_course_format'] = $originalcourseinfo->format;
         $info['original_course_fullname']  = $originalcourseinfo->fullname;
         $info['original_course_shortname'] = $originalcourseinfo->shortname;
         $info['original_course_startdate'] = $originalcourseinfo->startdate;
@@ -1635,7 +1666,7 @@ class backup_main_structure_step extends backup_structure_step {
         $information = new backup_nested_element('information', null, array(
             'name', 'moodle_version', 'moodle_release', 'backup_version',
             'backup_release', 'backup_date', 'mnet_remoteusers', 'include_files', 'include_file_references_to_external_content', 'original_wwwroot',
-            'original_site_identifier_hash', 'original_course_id',
+            'original_site_identifier_hash', 'original_course_id', 'original_course_format',
             'original_course_fullname', 'original_course_shortname', 'original_course_startdate',
             'original_course_contextid', 'original_system_contextid'));
 
@@ -2144,6 +2175,12 @@ class backup_activity_grading_structure_step extends backup_structure_step {
      * Include the grading.xml only if the module supports advanced grading
      */
     protected function execute_condition() {
+
+        // No grades on the front page.
+        if ($this->get_courseid() == SITEID) {
+            return false;
+        }
+
         return plugin_supports('mod', $this->get_task()->get_modulename(), FEATURE_ADVANCED_GRADING, false);
     }
 
@@ -2216,6 +2253,14 @@ class backup_activity_grading_structure_step extends backup_structure_step {
  * and letters related to one activity
  */
 class backup_activity_grades_structure_step extends backup_structure_step {
+
+    /**
+     * No grades on the front page.
+     * @return bool
+     */
+    protected function execute_condition() {
+        return ($this->get_courseid() != SITEID);
+    }
 
     protected function define_structure() {
 
@@ -2301,6 +2346,14 @@ class backup_activity_grades_structure_step extends backup_structure_step {
  */
 class backup_activity_grade_history_structure_step extends backup_structure_step {
 
+    /**
+     * No grades on the front page.
+     * @return bool
+     */
+    protected function execute_condition() {
+        return ($this->get_courseid() != SITEID);
+    }
+
     protected function define_structure() {
 
         // Settings to use.
@@ -2348,6 +2401,12 @@ class backup_activity_grade_history_structure_step extends backup_structure_step
 class backup_course_completion_structure_step extends backup_structure_step {
 
     protected function execute_condition() {
+
+        // No completion on front page.
+        if ($this->get_courseid() == SITEID) {
+            return false;
+        }
+
         // Check that all activities have been included
         if ($this->task->is_excluding_activities()) {
             return false;

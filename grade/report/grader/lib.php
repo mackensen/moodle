@@ -605,12 +605,18 @@ class grade_report_grader extends grade_report {
 
         $levels = count($this->gtree->levels) - 1;
 
-        for ($i = 0; $i < $levels; $i++) {
-            $fillercell = new html_table_cell();
-            $fillercell->attributes['class'] = 'fixedcolumn cell topleft';
-            $fillercell->text = ' ';
-            $fillercell->colspan = $colspan;
-            $row = new html_table_row(array($fillercell));
+        $fillercell = new html_table_cell();
+        $fillercell->header = true;
+        $fillercell->attributes['scope'] = 'col';
+        $fillercell->attributes['class'] = 'cell topleft';
+        $fillercell->text = html_writer::span(get_string('participants'), 'accesshide');
+        $fillercell->colspan = $colspan;
+        $fillercell->rowspan = $levels;
+        $row = new html_table_row(array($fillercell));
+        $rows[] = $row;
+
+        for ($i = 1; $i < $levels; $i++) {
+            $row = new html_table_row();
             $rows[] = $row;
         }
 
@@ -649,13 +655,13 @@ class grade_report_grader extends grade_report {
             $userrow->id = 'fixed_user_'.$userid;
 
             $usercell = new html_table_cell();
-            $usercell->attributes['class'] = 'user';
+            $usercell->attributes['class'] = 'header user';
 
             $usercell->header = true;
             $usercell->scope = 'row';
 
             if ($showuserimage) {
-                $usercell->text = $OUTPUT->user_picture($user);
+                $usercell->text = $OUTPUT->user_picture($user, array('visibletoscreenreaders' => false));
             }
 
             $fullname = fullname($user);
@@ -678,7 +684,7 @@ class grade_report_grader extends grade_report {
 
             $userreportcell = new html_table_cell();
             $userreportcell->attributes['class'] = 'userreport';
-            $userreportcell->header = true;
+            $userreportcell->header = false;
             if (has_capability('gradereport/'.$CFG->grade_profilereport.':view', $this->context)) {
                 $a = new stdClass();
                 $a->user = $fullname;
@@ -699,9 +705,8 @@ class grade_report_grader extends grade_report {
 
             foreach ($extrafields as $field) {
                 $fieldcell = new html_table_cell();
-                $fieldcell->attributes['class'] = 'header userfield user' . $field;
-                $fieldcell->header = true;
-                $fieldcell->scope = 'row';
+                $fieldcell->attributes['class'] = 'userfield user' . $field;
+                $fieldcell->header = false;
                 $fieldcell->text = $user->{$field};
                 $userrow->cells[] = $fieldcell;
             }
@@ -790,16 +795,16 @@ class grade_report_grader extends grade_report {
                     $fillercell->attributes['class'] = $type . ' ' . $catlevel;
                     $fillercell->colspan = $colspan;
                     $fillercell->text = '&nbsp;';
-                    $fillercell->header = true;
-                    $fillercell->scope = 'col';
+
+                    // This is a filler cell; don't use a <th>, it'll confuse screen readers.
+                    $fillercell->header = false;
                     $headingrow->cells[] = $fillercell;
                 } else if ($type == 'category') {
                     // Element is a category
                     $categorycell = new html_table_cell();
                     $categorycell->attributes['class'] = 'category ' . $catlevel;
                     $categorycell->colspan = $colspan;
-                    $categorycell->text = shorten_text($element['object']->get_name());
-                    $categorycell->text .= $this->get_collapsing_icon($element);
+                    $categorycell->text = $this->get_course_header($element);
                     $categorycell->header = true;
                     $categorycell->scope = 'col';
 
@@ -837,8 +842,10 @@ class grade_report_grader extends grade_report {
                             'id' => $this->course->id,
                             'item' => 'grade',
                             'itemid' => $element['object']->id));
-                        $singleview = $OUTPUT->action_icon($url, new pix_icon('t/editstring', get_string('singleview', 'grades',
-                                $element['object']->get_name())));
+                        $singleview = $OUTPUT->action_icon(
+                            $url,
+                            new pix_icon('t/editstring', get_string('singleview', 'grades', $element['object']->itemname))
+                        );
                     }
 
                     $itemcell->colspan = $colspan;
@@ -1159,6 +1166,7 @@ class grade_report_grader extends grade_report {
         $fulltable = new html_table();
         $fulltable->attributes['class'] = 'gradereport-grader-table';
         $fulltable->id = 'user-grades';
+        $fulltable->summary = get_string('summarygrader', 'gradereport_grader');
 
         // Extract rows from each side (left and right) and collate them into one row each
         foreach ($leftrows as $key => $row) {
@@ -1505,6 +1513,49 @@ class grade_report_grader extends grade_report {
     }
 
     /**
+     * Given element category, create a collapsible icon and
+     * course header.
+     *
+     * @param array $element
+     * @return string HTML
+     */
+    protected function get_course_header($element) {
+        global $OUTPUT;
+
+        $icon = '';
+        // If object is a category, display expand/contract icon.
+        if ($element['type'] == 'category') {
+            // Load language strings.
+            $strswitchminus = $this->get_lang_string('aggregatesonly', 'grades');
+            $strswitchplus  = $this->get_lang_string('gradesonly', 'grades');
+            $strswitchwhole = $this->get_lang_string('fullmode', 'grades');
+
+            $url = new moodle_url($this->gpr->get_return_url(null, array('target' => $element['eid'], 'sesskey' => sesskey())));
+
+            if (in_array($element['object']->id, $this->collapsed['aggregatesonly'])) {
+                $url->param('action', 'switch_plus');
+                $icon = $OUTPUT->action_icon($url, new pix_icon('t/switch_plus', $strswitchplus), null, null);
+                $showing = get_string('showingaggregatesonly', 'grades');
+            } else if (in_array($element['object']->id, $this->collapsed['gradesonly'])) {
+                $url->param('action', 'switch_whole');
+                $icon = $OUTPUT->action_icon($url, new pix_icon('t/switch_whole', $strswitchwhole), null, null);
+                $showing = get_string('showinggradesonly', 'grades');
+            } else {
+                $url->param('action', 'switch_minus');
+                $icon = $OUTPUT->action_icon($url, new pix_icon('t/switch_minus', $strswitchminus), null, null);
+                $showing = get_string('showingfullmode', 'grades');
+            }
+        }
+
+        $name = shorten_text($element['object']->get_name());
+        $courseheader = html_writer::tag('span', $name, array('id' => 'courseheader'));
+        $courseheader .= html_writer::label($showing, 'courseheader', false, array('class' => 'accesshide'));
+        $courseheader .= $icon;
+
+        return $courseheader;
+    }
+
+    /**
      * Given a grade_category, grade_item or grade_grade, this function
      * figures out the state of the object and builds then returns a div
      * with the icons needed for the grader report.
@@ -1564,11 +1615,16 @@ class grade_report_grader extends grade_report {
 
     /**
      * Given a category element returns collapsing +/- icon if available
+     *
+     * @deprecated since Moodle 2.9 MDL-46662 - please do not use this function any more.
+     * @todo MDL-49021 This will be deleted in Moodle 3.1
+     * @see grade_report_grader::get_course_header()
      * @param object $element
      * @return string HTML
      */
     protected function get_collapsing_icon($element) {
         global $OUTPUT;
+        debugging('get_collapsing_icon is deprecated, please use get_course_header instead.', DEBUG_DEVELOPER);
 
         $icon = '';
         // If object is a category, display expand/contract icon
