@@ -35,9 +35,6 @@ if ($ADMIN->fulltree) {
 
         $settings->add(new admin_setting_configcheckbox('enrol_meta/syncall', get_string('syncall', 'enrol_meta'), get_string('syncall_desc', 'enrol_meta'), 1));
 
-        $settings->add(new admin_setting_configcheckbox('enrol_meta/manageui', get_string('manageui', 'enrol_meta'), get_string('manageui_desc', 'enrol_meta'), 1));
-        $settings->add(new admin_setting_configcheckbox('enrol_meta/manageuishowshortname', get_string('manageuishowshortname', 'enrol_meta'), get_string('manageuishowshortname_desc', 'enrol_meta'), 1));
-
         $options = array(
             ENROL_EXT_REMOVED_UNENROL        => get_string('extremovedunenrol', 'core_enrol'),
             ENROL_EXT_REMOVED_SUSPEND        => get_string('extremovedsuspend', 'core_enrol'),

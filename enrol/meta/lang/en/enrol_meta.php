@@ -15,17 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Strings for component 'enrol_meta', language 'en', branch 'MOODLE_20_STABLE'
+ * Strings for component 'enrol_meta', language 'en'.
  *
- * @package    enrol
- * @subpackage meta
+ * @package    enrol_meta
  * @copyright  2010 onwards Petr Skoda  {@link http://skodak.org}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['backto'] = 'Back to {$a}';
 $string['linkedcourse'] = 'Link course';
-$string['linkedcourses'] = 'Linked courses';
 $string['meta:config'] = 'Configure meta enrol instances';
 $string['meta:selectaslinked'] = 'Select course as meta linked';
 $string['meta:unenrol'] = 'Unenrol suspended users';
@@ -35,14 +32,3 @@ $string['pluginname'] = 'Course meta link';
 $string['pluginname_desc'] = 'Course meta link enrolment plugin synchronises enrolments and roles in two different courses.';
 $string['syncall'] = 'Synchronise all enrolled users';
 $string['syncall_desc'] = 'If enabled all enrolled users are synchronised even if they have no role in parent course, if disabled only users that have at least one synchronised role are enrolled in child course.';
-$string['toomanycoursesmatchsearch'] = 'Too many courses ({$a->matches}) match \'{$a->query}\'';
-$string['toomanycoursestoshow'] = 'Too many courses ({$a}) to show';
-$string['coursesmatchingsearch'] = 'Found courses ({$a}) matching search';
-$string['metalinkedcourses'] = 'Meta linked courses ({$a})';
-$string['nometalinkedcourses'] = 'No meta linked courses';
-$string['linkselected'] = 'Link selected';
-$string['unlinkselected'] = 'Unlink selected';
-$string['manageui'] = 'Use manage course meta link UI';
-$string['manageui_desc'] = 'Allows multiple linking/unlinking of courses';
-$string['manageuishowshortname'] = 'Show course shortname';
-$string['manageuishowshortname_desc'] = 'Displays course shortname in select control';
