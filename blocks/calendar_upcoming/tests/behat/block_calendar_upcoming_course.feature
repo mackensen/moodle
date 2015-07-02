@@ -21,3 +21,15 @@ Feature: Enable the upcoming events block in a course
     And I log out
     When I log in as "teacher1"
     Then I should see "My Site Event" in the "Upcoming events" "block"
+
+  @javascript
+  Scenario: Rename an event and see the change take effect in the block
+    When I follow "Course 1"
+    And I turn editing mode on
+    And I add a "Assignment" section "1" and I fill the form with:
+      | Assignment name | Test assignment name |
+      | Description | Test assignment description |
+    And I should see "Test assignment name" in the "Upcoming events" "block"
+    And I change "Test assignment name" activity name to "Updated test assignment name"
+    And I reload the page
+    Then I should see "Updated test assignment name" in the "Upcoming events" "block"
