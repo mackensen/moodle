@@ -65,6 +65,10 @@ A course report which displays the user pictures for everyone enrolled in a cour
 
 This local module creates a news forum on course creation. It resolves the issue described in <https://tracker.moodle.org/browse/MDL-26707>.
 
+### Ad-hoc database queries (customsql)
+
+This report plugin, developed by Tim Hunt at the Open University,  allows Administrators to set up arbitrary database queries to act as ad-hoc reports.
+
 ## Downloading the LAE
 
 You can get the LAE in two ways:
