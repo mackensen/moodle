@@ -910,6 +910,11 @@ function data_add_instance($data, $mform = null) {
         $data->assessed = 0;
     }
 
+    if (empty($data->ratingtime) || empty($data->assessed)) {
+        $data->assesstimestart  = 0;
+        $data->assesstimefinish = 0;
+    }
+
     $data->timemodified = time();
 
     $data->id = $DB->insert_record('data', $data);
@@ -1553,6 +1558,11 @@ function mod_data_rating_can_see_item_ratings($params) {
     if (!$info = $DB->get_record_sql($datasql, $dataparams)) {
         // Item doesn't exist.
         throw new rating_exception('invaliditemid');
+    }
+
+    // User can see ratings of all participants.
+    if ($info->groupid == 0) {
+        return true;
     }
 
     $course = $DB->get_record('course', array('id' => $info->course), '*', MUST_EXIST);
@@ -3829,6 +3839,7 @@ function data_process_submission(stdClass $mod, $fields, stdClass $datarecord) {
     // Empty form checking - you can't submit an empty form.
     $emptyform = true;
     $requiredfieldsfilled = true;
+    $fieldsvalidated = true;
 
     // Store the notifications.
     $result->generalnotifications = array();
@@ -3866,6 +3877,14 @@ function data_process_submission(stdClass $mod, $fields, stdClass $datarecord) {
 
         $field = data_get_field($fieldrecord, $mod);
         if (isset($submitteddata[$fieldrecord->id])) {
+            // Field validation check.
+            if (method_exists($field, 'field_validation')) {
+                $errormessage = $field->field_validation($submitteddata[$fieldrecord->id]);
+                if ($errormessage) {
+                    $result->fieldnotifications[$field->field->name][] = $errormessage;
+                    $fieldsvalidated = false;
+                }
+            }
             foreach ($submitteddata[$fieldrecord->id] as $fieldname => $value) {
                 if ($field->notemptyfield($value->value, $value->fieldname)) {
                     // The field has content and the form is not empty.
@@ -3897,7 +3916,7 @@ function data_process_submission(stdClass $mod, $fields, stdClass $datarecord) {
         $result->generalnotifications[] = get_string('emptyaddform', 'data');
     }
 
-    $result->validated = $requiredfieldsfilled && !$emptyform;
+    $result->validated = $requiredfieldsfilled && !$emptyform && $fieldsvalidated;
 
     return $result;
 }
