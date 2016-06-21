@@ -136,14 +136,21 @@ class event_form extends moodleform {
 
         $mform->setDefault('duration', ($hasduration)?1:0);
 
+        // Repeated events.
         if ($newevent) {
 
             $mform->addElement('header', 'repeatevents', get_string('repeatedevents', 'calendar'));
             $mform->addElement('checkbox', 'repeat', get_string('repeatevent', 'calendar'), null);
-            $mform->addElement('text', 'repeats', get_string('repeatweeksl', 'calendar'), 'maxlength="10" size="10"');
+            $mform->addElement('text', 'repeats', get_string('repeat_frequency', 'calendar'), 'maxlength="5" size="5"');
+            $select = &$mform->addElement('select', 'repeat_day', get_string('repeat_day', 'calendar'),
+                $this->_customdata->days, array());
+            $select->setMultiple(true);
+            $mform->addElement('date_selector', 'repeat_end', get_string('repeat_end', 'calendar'));
             $mform->setType('repeats', PARAM_INT);
             $mform->setDefault('repeats', 1);
-            $mform->disabledIf('repeats','repeat','notchecked');
+            $mform->disabledIf('repeats', 'repeat', 'notchecked');
+            $mform->disabledIf('repeat_day', 'repeat', 'notchecked');
+            $mform->disabledIf('repeat_end', 'repeat', 'notchecked');
 
         } else if ($repeatedevents) {
 
@@ -188,6 +195,10 @@ class event_form extends moodleform {
             $errors['timedurationuntil'] = get_string('invalidtimedurationuntil', 'calendar');
         } else if ($data['duration'] == 2 && (trim($data['timedurationminutes']) == '' || $data['timedurationminutes'] < 1)) {
             $errors['timedurationminutes'] = get_string('invalidtimedurationminutes', 'calendar');
+        }
+
+        if (!empty($data['repeat']) && $data['repeat'] == 1 && $data['repeat_end'] < $data['timestart']) {
+            $errors['repeat_end'] = get_string('invalidtimerepeatend', 'calendar');
         }
 
         return $errors;

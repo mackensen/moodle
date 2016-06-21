@@ -151,6 +151,7 @@ if ($eventid !== 0) {
 $properties = $event->properties(true);
 $formoptions->event = $event;
 $formoptions->hasduration = ($event->timeduration > 0);
+$formoptions->days = calendar_format_weekdays(\core_calendar\type_factory::get_calendar_instance()->get_weekdays());
 $mform = new event_form(null, $formoptions);
 $mform->set_data($properties);
 $data = $mform->get_data();

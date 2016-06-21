@@ -1762,6 +1762,20 @@ function calendar_format_event_time($event, $now, $linkparams = null, $usecommon
 }
 
 /**
+ * Format weekdays for use in the event creation form.
+ *
+ * @param array $days the list of weekdays
+ * @return array $options reformatted for a selector
+ */
+function calendar_format_weekdays($days) {
+    $options = array();
+    foreach ($days as $key => $day) {
+        $options[$key] = $day['fullname'];
+    }
+    return $options;
+}
+
+/**
  * Display month selector options
  *
  * @param string $name for the select element
@@ -2316,33 +2330,51 @@ class calendar_event {
                 $eventcopy = clone($this->properties);
                 unset($eventcopy->id);
 
+                if (empty($eventcopy->repeat_day)) {
+                    $eventcopy->repeat_day[] = date('w', $eventcopy->timestart);
+                }
+
                 $timestart = new DateTime('@' . $eventcopy->timestart);
                 $timestart->setTimezone(core_date::get_user_timezone_object());
+                $timestart->sub(new DateInterval('P' . date('w', $eventcopy->timestart) . 'D'));
 
-                for($i = 1; $i < $eventcopy->repeats; $i++) {
+                while ($timestart->getTimestamp() <= $eventcopy->repeat_end) {
+                    foreach ($eventcopy->repeat_day as $key => $day) {
+                        $temptime = clone($timestart);
+                        $temptime->add(new DateInterval('P' . $day. 'D'));
 
-                    $timestart->add(new DateInterval('P7D'));
-                    $eventcopy->timestart = $timestart->getTimestamp();
-
-                    // Get the event id for the log record.
-                    $eventcopyid = $DB->insert_record('event', $eventcopy);
-
-                    // If the context has been set delete all associated files
-                    if ($usingeditor) {
-                        $fs = get_file_storage();
-                        $files = $fs->get_area_files($this->editorcontext->id, 'calendar', 'event_description', $this->properties->id);
-                        foreach ($files as $file) {
-                            $fs->create_file_from_storedfile(array('itemid'=>$eventcopyid), $file);
+                        // Skip if in the future or past.
+                        if ($temptime->getTimestamp() < $this->properties->timestart
+                            || $temptime->getTimestamp() > $eventcopy->repeat_end
+                            || $temptime->getTimestamp() == $this->properties->timestart ) {
+                            continue;
                         }
+                        $eventcopy->timestart = $temptime->getTimestamp();
+
+                        // Get the event id for the log record.
+                        $eventcopyid = $DB->insert_record('event', $eventcopy);
+
+                        // If the context has been set delete all associated files.
+                        if ($usingeditor) {
+                            $fs = get_file_storage();
+                            $files = $fs->get_area_files($this->editorcontext->id, 'calendar', 'event_description',
+                                $this->properties->id);
+                            foreach ($files as $file) {
+                                $fs->create_file_from_storedfile(array('itemid' => $eventcopyid), $file);
+                            }
+                        }
+
+                        $repeatedids[] = $eventcopyid;
+
+                        // Trigger an event.
+                        $eventargs['objectid'] = $eventcopyid;
+                        $eventargs['other']['timestart'] = $eventcopy->timestart;
+                        $event = \core\event\calendar_event_created::create($eventargs);
+                        $event->trigger();
                     }
 
-                    $repeatedids[] = $eventcopyid;
-
-                    // Trigger an event.
-                    $eventargs['objectid'] = $eventcopyid;
-                    $eventargs['other']['timestart'] = $eventcopy->timestart;
-                    $event = \core\event\calendar_event_created::create($eventargs);
-                    $event->trigger();
+                    // Advance to the next interval.
+                    $timestart->add(new DateInterval('P' . $this->properties->repeats . 'W'));
                 }
             }
 
