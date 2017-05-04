@@ -234,6 +234,15 @@ if ($ADMIN->fulltree) {
                 get_string('auth_ldap_objectclass_key', 'auth_ldap'),
                 get_string('auth_ldap_objectclass', 'auth_ldap'), '', PARAM_RAW_TRIMMED));
 
+        // User authorisation header.
+        $settings->add(new admin_setting_heading('auth_cas/userauthorisation',
+                new lang_string('authorisation_settings', 'auth'), ''));
+
+        // Authorisation field mapping.
+        $settings->add(new admin_setting_configtext('auth_cas/authorisedgroups',
+                get_string('auth_ldap_authorisedgroups_key', 'auth_ldap'),
+                get_string('auth_ldap_authorisedgroups', 'auth_ldap'), '', PARAM_RAW_TRIMMED));
+
         // Course Creators Header.
         $settings->add(new admin_setting_heading('auth_cas/coursecreators',
                 new lang_string('coursecreators'), ''));

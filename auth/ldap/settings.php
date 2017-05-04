@@ -212,6 +212,15 @@ if ($ADMIN->fulltree) {
                 get_string('auth_ldap_gracelogin_key', 'auth_ldap'),
                 get_string('auth_ldap_graceattr_desc', 'auth_ldap'), '', PARAM_RAW));
 
+        // User authorisation header.
+        $settings->add(new admin_setting_heading('auth_ldap/userauthorisation',
+                new lang_string('authorisation_settings', 'auth'), ''));
+
+        // Authorisation field mapping.
+        $settings->add(new admin_setting_configtext('auth_ldap/authorisedgroups',
+                get_string('auth_ldap_authorisedgroups_key', 'auth_ldap'),
+                get_string('auth_ldap_authorisedgroups', 'auth_ldap'), '', PARAM_RAW_TRIMMED));
+
         // User Creation.
         $settings->add(new admin_setting_heading('auth_ldap/usercreation',
                 new lang_string('auth_user_create', 'auth'), ''));

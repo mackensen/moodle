@@ -43,6 +43,7 @@ $string['authinstructions'] = 'Leave this blank for the default login instructio
 $string['auth_invalidnewemailkey'] = 'Error: if you are trying to confirm a change of email address, you may have made a mistake in copying the URL we sent you by email. Please copy the address and try again.';
 $string['auth_multiplehosts'] = 'Multiple hosts OR addresses can be specified (eg host1.com;host2.com;host3.com) or (eg xxx.xxx.xxx.xxx;xxx.xxx.xxx.xxx)';
 $string['auth_notconfigured'] = 'The authentication method {$a} is not configured.';
+$string['authorisation_settings'] = 'User authorisation settings';
 $string['auth_outofnewemailupdateattempts'] = 'You have run out of allowed attempts to update your email address. Your update request has been cancelled.';
 $string['auth_passwordisexpired'] = 'Your password has expired. Please change it now.';
 $string['auth_passwordwillexpire'] = 'Your password will expire in {$a} days. Do you want to change your password now?';

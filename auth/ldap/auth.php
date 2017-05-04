@@ -227,6 +227,30 @@ class auth_plugin_ldap extends auth_plugin_base {
     }
 
     /**
+     * Optionally ensures that user is authorised.
+     *
+     * @param string $username
+     *
+     * @return bool Authorisation success or failure.
+     */
+    public function user_authorised($username) {
+        $extusername = core_text::convert($username, 'utf-8', $this->config->ldapencoding);
+        if (!empty($this->config->authorisedgroups)) {
+            $ldapconnection = $this->ldap_connect();
+            if ($this->config->memberattribute_isdn) {
+                if (!($userid = $this->ldap_find_userdn($ldapconnection, $extusername))) {
+                    return false;
+                }
+            } else {
+                $userid = $extusername;
+            }
+            $groups = explode(";", $this->config->authorisedgroups);
+            return ldap_isgroupmember($ldapconnection, $userid, $groups, $this->config->memberattribute);
+        }
+        return true;
+    }
+
+    /**
      * Reads user information from ldap and returns it in array()
      *
      * Function should return all information available. If you are saving
@@ -683,11 +707,16 @@ class auth_plugin_ldap extends auth_plugin_base {
         print_string('creatingtemptable', 'auth_ldap', 'tmp_extuser');
         $dbman->create_temp_table($table);
 
-        ////
-        //// get user's list from ldap to sql in a scalable fashion
-        ////
-        // prepare some data we'll need
-        $filter = '(&('.$this->config->user_attribute.'=*)'.$this->config->objectclass.')';
+        // Get users list from LDAP to SQL in a scalable fashion.
+        $groupclass = '';
+        if (isset($this->config->authorisedgroups)) {
+            $groups = explode(';', $this->config->authorisedgroups);
+            foreach ($groups as $group) {
+                $groupclass .= '(memberOf='.trim($group).')';
+            }
+            $groupclass = '(|'.$groupclass.')';
+        }
+        $filter = '(&('.$this->config->user_attribute.'=*)'.$this->config->objectclass.$groupclass.')';
 
         $contexts = explode(';', $this->config->contexts);
 

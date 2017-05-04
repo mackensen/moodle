@@ -23,6 +23,8 @@
  */
 
 $string['auth_ldap_ad_create_req'] = 'Cannot create the new account in Active Directory. Make sure you meet all the requirements for this to work (LDAPS connection, bind user with adequate rights, etc.)';
+$string['auth_ldap_authorisedgroups'] = 'List of groups whose members are authorised to authenticate. Separate multiple groups with \';\'.';
+$string['auth_ldap_authorisedgroups_key'] = 'Authorised groups';
 $string['auth_ldap_attrcreators'] = 'List of groups or contexts whose members are allowed to create attributes. Separate multiple groups with \';\'. Usually something like \'cn=teachers,ou=staff,o=myorg\'';
 $string['auth_ldap_attrcreators_key'] = 'Attribute creators';
 $string['auth_ldap_auth_user_create_key'] = 'Create users externally';
