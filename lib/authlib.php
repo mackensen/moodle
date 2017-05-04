@@ -130,6 +130,18 @@ class auth_plugin_base {
     }
 
     /**
+     * Plugins may override to provide additional authorisation logic after a successful authentication.
+     *
+     * @param string $username
+     *
+     * @return bool Authorisation success or failure.
+     */
+    public function user_authorised($username) {
+        // Override as needed.
+        return true;
+    }
+
+    /**
      * Returns true if this authentication plugin can change the users'
      * password.
      *

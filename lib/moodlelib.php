@@ -4313,7 +4313,19 @@ function authenticate_user_login($username, $password, $ignorelockout=false, &$f
             continue;
         }
 
-        // Successful authentication.
+        // Successful authentication; optionally verify authorisation.
+        if (!$authplugin->user_authorised($username)) {
+            $failurereason = AUTH_LOGIN_UNAUTHORISED;
+
+            // Trigger login failed event.
+            $event = \core\event\user_login_failed::create(array('other' => array('username' => $username,
+                'reason' => $failurereason)));
+            $event->trigger();
+
+            return false;
+        }
+
+        // Successful authorisation.
         if ($user->id) {
             // User already exists in database.
             if (empty($user->auth)) {
