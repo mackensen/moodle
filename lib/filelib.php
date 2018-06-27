@@ -843,6 +843,74 @@ function file_remove_editor_orphaned_files($editor) {
 }
 
 /**
+ * Finds all draft areas used in a textarea and copies the files into the primary textarea. If a user copies and pastes
+ * content from another draft area it's possible for a single textarea to reference multiple draft areas.
+ *
+ * @category files
+ * @param int $draftitemid the id of the primary draft area.
+ * @param int $usercontextid the user's context id.
+ * @param string $text some html content that needs to have files copied to the correct draft area.
+ * @param bool $forcehttps force https urls.
+ *
+ * @return string $text html content modified with new draft links
+ */
+function file_maybe_merge_draft_areas($draftitemid, $usercontextid, $text, $forcehttps=false) {
+    global $CFG;
+
+    if (is_null($text)) {
+        return null;
+    }
+
+    $wwwroot = $CFG->wwwroot;
+    if ($forcehttps) {
+        $wwwroot = str_replace('http://', 'https://', $wwwroot);
+    }
+
+    preg_match_all('/' . preg_quote($wwwroot, '/') . '\/draftfile\.php\/' . $usercontextid . '\/user\/draft\/([0-9]*)\/([^\'\",&<>|`\s:\\\\]+)/',
+        $text, $matches, PREG_SET_ORDER);
+
+    if (empty($matches)) {
+        return $text;
+    }
+
+    $fs = get_file_storage();
+
+    foreach ($matches as $match) {
+        $olddraftitemid = $match[1];
+
+        $fileinfo = array(
+            'component' => 'user',
+            'filearea' => 'draft',
+            'itemid' => $olddraftitemid,
+            'contextid' => $usercontextid,
+            'filepath' => '/',
+            'filename' => urldecode($match[2])
+        );
+        $file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'], $fileinfo['filearea'],
+            $fileinfo['itemid'], $fileinfo['filepath'], $fileinfo['filename']);
+
+        $newfileinfo = array(
+            'component' => 'user',
+            'filearea' => 'draft',
+            'itemid' => $draftitemid,
+            'contextid' => $usercontextid,
+            'filepath' => '/',
+            'filename' => urldecode($match[2])
+        );
+        // Check if the file exists.
+        if ( ! $fs->file_exists($newfileinfo['contextid'], $newfileinfo['component'], $newfileinfo['filearea'],
+            $newfileinfo['itemid'], $newfileinfo['filepath'], $newfileinfo['filename']) ) {
+                $newfile = $fs->create_file_from_storedfile($newfileinfo, $file);
+        }
+
+        // Update draftfile link.
+        $text = str_ireplace("$wwwroot/draftfile.php/$usercontextid/user/draft/$olddraftitemid/{$match[2]}",
+            "$wwwroot/draftfile.php/$usercontextid/user/draft/$draftitemid/{$match[2]}", $text);
+    }
+    return $text;
+}
+
+/**
  * Saves files from a draft file area to a real one (merging the list of files).
  * Can rewrite URLs in some content at the same time if desired.
  *
@@ -886,6 +954,10 @@ function file_save_draft_area_files($draftitemid, $contextid, $component, $filea
         // are not passed to file_save_draft_area_files()
         $allowreferences = false;
     }
+
+    // Check if the user has copy-pasted from other draft areas. Those files will be located in different draft
+    // areas and need to be copied into the current draft area.
+    $text = file_maybe_merge_draft_areas($draftitemid, $usercontext->id, $text, $forcehttps);
 
     // Check if the draft area has exceeded the authorised limit. This should never happen as validation
     // should have taken place before, unless the user is doing something nauthly. If so, let's just not save
