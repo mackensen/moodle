@@ -2034,18 +2034,23 @@ function content_to_text($content, $contentformat) {
  * is required; other file fields may be passed to filter.
  *
  * @param string $text Some html content.
- * @param int $contextid
- * @param string $component
- * @param string $filearea
- * @param int $itemid
- * @param string $filename
+ * @param bool $forcehttps force https urls.
+ * @param int $contextid This parameter and the next three identify the file area to save to.
+ * @param string $component The component name.
+ * @param string $filearea The filearea.
+ * @param int $itemid The item id for the filearea.
+ * @param string $filename The specific filename of the file.
  * @return array
  */
-function extract_draft_file_urls_from_text($text, $contextid = null, $component = null,
+function extract_draft_file_urls_from_text($text, $forcehttps = false, $contextid = null, $component = null,
         $filearea = null, $itemid = null, $filename = null) {
     global $CFG;
 
-    $urlstring = '/' . preg_quote($CFG->wwwroot, '/');
+    $wwwroot = $CFG->wwwroot;
+    if ($forcehttps) {
+        $wwwroot = str_replace('http://', 'https://', $wwwroot);
+    }
+    $urlstring = '/' . preg_quote($wwwroot, '/');
 
     $urlbase = preg_quote('draftfile.php');
     $urlstring .= "\/(?<urlbase>{$urlbase})";

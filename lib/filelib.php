@@ -889,12 +889,7 @@ function file_merge_draft_areas($draftitemid, $usercontextid, $text, $forcehttps
         return null;
     }
 
-    $wwwroot = $CFG->wwwroot;
-    if ($forcehttps) {
-        $wwwroot = str_replace('http://', 'https://', $wwwroot);
-    }
-
-    $urls = extract_draft_file_urls_from_text($text, $usercontextid, 'user', 'draft');
+    $urls = extract_draft_file_urls_from_text($text, $forcehttps, $usercontextid, 'user', 'draft');
 
     // No draft areas to rewrite.
     if (empty($urls)) {
@@ -911,10 +906,10 @@ function file_merge_draft_areas($draftitemid, $usercontextid, $text, $forcehttps
         $filename = urldecode($url['filename']);
 
         // Copy the file.
-        $newfile = file_copy_file_to_file_area($url, $filename, $draftitemid);
+        file_copy_file_to_file_area($url, $filename, $draftitemid);
 
         // Rewrite draft area.
-        $text = file_replace_file_area_in_text($url, $draftitemid, $text);
+        $text = file_replace_file_area_in_text($url, $draftitemid, $text, $forcehttps);
     }
     return $text;
 }
@@ -925,13 +920,37 @@ function file_merge_draft_areas($draftitemid, $usercontextid, $text, $forcehttps
  * @param array $file General information about the file.
  * @param int $newid The new file area itemid.
  * @param string $text The text to rewrite.
+ * @param bool $forcehttps force https urls.
+ * @return string The rewritten text.
  */
-function file_replace_file_area_in_text($file, $newid, $text) {
+function file_replace_file_area_in_text($file, $newid, $text, $forcehttps = false) {
     global $CFG;
-    $text = str_ireplace(
-        "{$CFG->wwwroot}/{$file['urlbase']}/{$file['contextid']}/{$file['component']}/{$file['filearea']}/{$file['itemid']}/{$file['filename']}",
-        "{$CFG->wwwroot}/{$file['urlbase']}/{$file['contextid']}/{$file['component']}/{$file['filearea']}/{$newid}/{$file['filename']}",
-        $text);
+
+    $wwwroot = $CFG->wwwroot;
+    if ($forcehttps) {
+        $wwwroot = str_replace('http://', 'https://', $wwwroot);
+    }
+
+    $search = [
+        $wwwroot,
+        $file['urlbase'],
+        $file['contextid'],
+        $file['component'],
+        $file['filearea'],
+        $file['itemid'],
+        $file['filename']
+    ];
+    $replace = [
+        $wwwroot,
+        $file['urlbase'],
+        $file['contextid'],
+        $file['component'],
+        $file['filearea'],
+        $newid,
+        $file['filename']
+    ];
+
+    $text = str_ireplace( implode('/', $search), implode('/', $replace), $text);
     return $text;
 }
 
@@ -941,7 +960,6 @@ function file_replace_file_area_in_text($file, $newid, $text) {
  * @param array $file Information about the file to be copied.
  * @param string $filename The filename.
  * @param int $itemid The new file area.
- * @return stored_file|false
  */
 function file_copy_file_to_file_area($file, $filename, $itemid) {
     $fs = get_file_storage();

@@ -1476,7 +1476,7 @@ EOF;
 
     public function test_file_copy_file_to_file_area() {
         // Create two files in different draft areas but owned by the same user.
-        global $USER, $CFG;
+        global $USER;
         $this->resetAfterTest(true);
         $this->setAdminUser();
 
