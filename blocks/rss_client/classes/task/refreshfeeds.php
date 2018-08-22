@@ -81,7 +81,7 @@ class refreshfeeds extends \core\task\scheduled_task {
         foreach ($rs as $rec) {
             mtrace('    ' . $rec->url . ' ', '');
 
-            // Skip feed if it failed recently.
+            // Skip feed if it failed recently or hasn't reached the next interval to check.
             if ($starttimesec < $rec->skipuntil) {
                 mtrace('skipping until ' . userdate($rec->skipuntil));
                 continue;
@@ -97,12 +97,12 @@ class refreshfeeds extends \core\task\scheduled_task {
                 mtrace("Error: could not load/find the RSS feed - skipping for {$rec->skiptime} seconds.");
             } else {
                 mtrace ('ok');
-                // It worked this time, so reset the skiptime.
-                if ($rec->skiptime > 0) {
-                    $rec->skiptime = 0;
-                    $rec->skipuntil = 0;
-                    $DB->update_record('block_rss_client', $rec);
-                }
+
+                // Set the next time to check the feed.
+                $rec->skiptime = 0;
+                $rec->skipuntil = $starttimesec + $feed->get_next_interval();
+                $DB->update_record('block_rss_client', $rec);
+
                 // Only increase the counter when a feed is sucesfully refreshed.
                 $counter ++;
             }

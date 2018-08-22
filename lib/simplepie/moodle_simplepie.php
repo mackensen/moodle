@@ -33,6 +33,13 @@ require_once($CFG->libdir.'/filelib.php');
 // version of this file.
 require_once($CFG->libdir.'/simplepie/autoloader.php');
 
+// Define RSS defaults.
+define( 'RSS_PERIOD_HOURLY', 'hourly');
+define( 'RSS_PERIOD_DAILY', 'daily');
+define( 'RSS_PERIOD_WEEKLY', 'weekly');
+define( 'RSS_PERIOD_MONTHLY', 'monthly');
+define( 'RSS_PERIOD_YEARLY', 'yearly');
+
 /**
  * Moodle Customised version of the SimplePie class
  *
@@ -82,6 +89,48 @@ class moodle_simplepie extends SimplePie {
             $this->set_feed_url($feedurl);
             $this->init();
         }
+    }
+
+    /**
+     * Calculate the next time to check the feed based on the values in
+     * http://web.resource.org/rss/1.0/modules/syndication/, if provided. Otherwise
+     * a daily frequency is assumed.
+     *
+     * @return int the time to wait until checking the feed again
+     */
+    public function get_next_interval() {
+        $period = $this->get_channel_tags('http://purl.org/rss/1.0/modules/syndication/', 'updatePeriod');
+        if (!is_array($period)) {
+            $period = RSS_PERIOD_DAILY;
+        } else {
+            $period = $period[0]['data'];
+        }
+        $frequency = $this->get_channel_tags('http://purl.org/rss/1.0/modules/syndication/', 'updateFrequency');
+        if (!is_array($frequency)) {
+            $frequency = 1;
+        } else {
+            $frequency = $frequency[0]['data'];
+        }
+        $interval = 0;
+
+        switch($period) {
+            case RSS_PERIOD_HOURLY:
+                $interval = HOURSECS * $frequency;
+                break;
+            case RSS_PERIOD_DAILY:
+                $interval = DAYSECS * $frequency;
+                break;
+            case RSS_PERIOD_WEEKLY:
+                $interval = WEEKSECS * $frequency;
+                break;
+            case RSS_PERIOD_MONTHLY:
+                $interval = strtotime("+{$frequency} month") - time();
+                break;
+            case RSS_PERIOD_YEARLY:
+                $interval = YEARSECS * $frequency;
+                break;
+        }
+        return $interval;
     }
 
     /**
