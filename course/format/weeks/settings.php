@@ -33,4 +33,9 @@ if ($ADMIN->fulltree) {
         new lang_string('indentation_help', 'format_weeks').'<br />'.$link,
         1
     ));
+    $settings->add(new admin_setting_configcheckbox('format_weeks/automaticenddate',
+        new lang_string('defaultautomaticenddate', 'format_weeks'),
+        new lang_string('defaultautomaticenddate_help', 'format_weeks'),
+        1
+    ));
 }

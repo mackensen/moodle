@@ -230,6 +230,44 @@ final class format_weeks_test extends \advanced_testcase {
     }
 
     /**
+     * Test enddate behavior in course_format_options.
+     *
+     * @covers ::course_format_options
+     * @return void
+     */
+    public function test_course_format_options(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        // Disable automatic end dates at the system level.
+        set_config('defaultautomaticenddate', 0, 'format_weeks');
+
+        // Generate a course with the end date set.
+        $coursestartdate = time();
+        $courseenddate = $coursestartdate + (WEEKSECS * 16);
+        $course = $generator->create_course([
+            'format' => 'topics',
+            'startdate' => $coursestartdate,
+            'enddate' => $courseenddate,
+            'createsections' => true,
+            'numsections' => 12,
+        ]);
+
+        // Verify course created as expected.
+        $coursesections = $DB->get_records('course_sections', ['course' => $course->id]);
+        $this->assertCount(12, $coursesections);
+        $this->assertEquals($course->enddate, $courseenddate);
+
+        // Change to weeks; verify that the enddate has not changed.
+        $course->format = 'weeks';
+        update_course($course);
+        $coursesections = $DB->get_records('course_sections', ['course' => $course->id]);
+        $this->assertCount(12, $coursesections);
+        $this->assertEquals($course->enddate, $courseenddate);
+    }
+
+    /**
      * Test for get_view_url().
      *
      * @covers ::get_view_url

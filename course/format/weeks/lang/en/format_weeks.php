@@ -25,6 +25,8 @@
 $string['addsection'] = 'Add week';
 $string['automaticenddate'] = 'Calculate the end date from the number of sections';
 $string['automaticenddate_help'] = 'If enabled, the end date for the course will be automatically calculated from the number of sections and the course start date.';
+$string['defaultautomaticenddate'] = 'Calculate the end date by default';
+$string['defaultautomaticenddate_help'] = 'Default behavior for whether the course end date will be calculated from the number of sections and the course start date';
 $string['currentsection'] = 'Current week';
 $string['hidefromothers'] = 'Hide';
 $string['page-course-view-weeks'] = 'Any course main page in weekly sections format';
