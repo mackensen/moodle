@@ -232,6 +232,7 @@ class format_weeks extends format_base {
         static $courseformatoptions = false;
         if ($courseformatoptions === false) {
             $courseconfig = get_config('moodlecourse');
+            $formatconfig = get_config('format_weeks');
             $courseformatoptions = array(
                 'hiddensections' => array(
                     'default' => $courseconfig->hiddensections,
@@ -242,7 +243,7 @@ class format_weeks extends format_base {
                     'type' => PARAM_INT,
                 ),
                 'automaticenddate' => array(
-                    'default' => 1,
+                    'default' => $formatconfig->automaticenddate,
                     'type' => PARAM_BOOL,
                 ),
             );

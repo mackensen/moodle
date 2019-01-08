@@ -15,16 +15,18 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details
+ * Settings for format_weeks
  *
- * @package    format
- * @subpackage weeks
- * @copyright  1999 onwards Martin Dougiamas (http://dougiamas.com)
+ * @package    format_weeks
+ * @copyright  2019 Lafayette College ITS
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die;
 
-$plugin->version   = 2018120301;        // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2018112800;        // Requires this Moodle version.
-$plugin->component = 'format_weeks';    // Full name of the plugin (used for diagnostics).
+if ($ADMIN->fulltree) {
+    $settings->add(new admin_setting_configcheckbox('format_weeks/automaticenddate',
+        new lang_string('defaultautomaticenddate', 'format_weeks'),
+        new lang_string('defaultautomaticenddatedesc', 'format_weeks'),
+        1));
+}
