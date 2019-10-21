@@ -3619,5 +3619,19 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2019101600.01);
     }
 
+    if ($oldversion < 2019101800.01) {
+        // Add index to events to address issue in MDL-66603.
+        $table = new xmldb_table('event');
+        $index = new xmldb_index('modulename-instance-eventtype', XMLDB_INDEX_NOTUNIQUE, ['modulename', 'instance', 'eventtype']);
+
+        // Conditionally launch add index modulename-instance-eventtype.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2019101800.01);
+    }
+
     return true;
 }
