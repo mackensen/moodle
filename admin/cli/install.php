@@ -214,7 +214,8 @@ $SITE = $COURSE;
 define('SITEID', 1);
 
 //Database types
-$databases = array('mysqli' => moodle_database::get_driver_instance('mysqli', 'native'),
+$databases = array('auroramysql' => moodle_database::get_driver_instance('auroramysql', 'native'),
+                   'mysqli' => moodle_database::get_driver_instance('mysqli', 'native'),
                    'mariadb'=> moodle_database::get_driver_instance('mariadb', 'native'),
                    'pgsql'  => moodle_database::get_driver_instance('pgsql',  'native'),
                    'oci'    => moodle_database::get_driver_instance('oci',    'native'),
