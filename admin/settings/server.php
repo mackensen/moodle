@@ -61,6 +61,11 @@ if ($hassiteconfig) {
     $temp->add($setting);
     $temp->add(new admin_setting_configtext('supportpage', new lang_string('supportpage', 'admin'),
         new lang_string('configsupportpage', 'admin'), '', PARAM_URL));
+    $setting = new admin_setting_configtext('publicsupportemail', new lang_string('supportemail:public', 'admin'),
+        new lang_string('configsupportemail:public', 'admin'), '', PARAM_EMAIL);
+    $setting->set_force_ltr(true);
+    $temp->add($setting);
+
     $ADMIN->add('server', $temp);
 
     // Session handling.

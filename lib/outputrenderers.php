@@ -4141,6 +4141,9 @@ EOD;
         }
 
         $supportemail = $CFG->supportemail;
+        if (!empty($CFG->publicsupportemail)) {
+            $supportemail = $CFG->publicsupportemail;
+        }
         $label = get_string('contactsitesupport', 'admin');
         $icon = $this->pix_icon('t/email', '', 'moodle', ['class' => 'iconhelp icon-pre']);
         return html_writer::tag('a', $icon . $label, ['href' => 'mailto:' . $supportemail]);
