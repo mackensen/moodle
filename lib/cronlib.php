@@ -276,6 +276,15 @@ function cron_run_inner_scheduled_task(\core\task\task_base $task) {
             mtrace("... used " . (microtime(1) - $pretime) . " seconds");
         }
         mtrace('Scheduled task failed: ' . $fullname . ',' . $e->getMessage());
+        $systemcontext = \context_system::instance();
+        $event = \core\event\scheduled_task_failed::create([
+            'context' => $systemcontext,
+            'other' => [
+                'fullname' => $fullname,
+                'message' => $e->getMessage(),
+            ]
+        ]);
+        $event->trigger();
         if ($CFG->debugdeveloper) {
             if (!empty($e->debuginfo)) {
                 mtrace("Debug info:");
