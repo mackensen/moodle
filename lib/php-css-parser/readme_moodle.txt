@@ -7,3 +7,4 @@ Import procedure:
 3. Apply the following patches from the following pull requests if they have not yet been merged upstream:
    a. https://github.com/sabberworm/PHP-CSS-Parser/pull/115
    b. https://github.com/sabberworm/PHP-CSS-Parser/pull/173
+   c. https://github.com/sabberworm/PHP-CSS-Parser/pull/195
