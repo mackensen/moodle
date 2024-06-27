@@ -641,7 +641,7 @@ class data_field_base {     // Base class for Database Field Types (see field/*/
     function image() {
         global $OUTPUT;
 
-        return $OUTPUT->pix_icon('field/' . $this->type, $this->type, 'data');
+        return $OUTPUT->pix_icon($this->type, $this->type, 'datafield_' . $this->type);
     }
 
     /**
