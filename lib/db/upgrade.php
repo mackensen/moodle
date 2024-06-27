@@ -1170,5 +1170,18 @@ function xmldb_main_upgrade($oldversion) {
     // Automatically generated Moodle v4.4.0 release upgrade line.
     // Put any upgrade step following this.
 
+    if($oldversion < 2024042201.01) {
+        $table = new xmldb_table('user');
+        $field = new xmldb_field('pronouns', XMLDB_TYPE_CHAR, '255', null, false, false, null, 'moodlenetprofile');
+
+        // Conditionally launch add field component.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2024042201.01);
+    }
+
     return true;
 }

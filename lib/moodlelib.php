@@ -3520,6 +3520,7 @@ function truncate_userinfo(array $info) {
         'firstname'   => 100,
         'lastname'    => 100,
         'email'       => 100,
+        'pronouns'    => 255,
         'phone1'      =>  20,
         'phone2'      =>  20,
         'institution' => 255,

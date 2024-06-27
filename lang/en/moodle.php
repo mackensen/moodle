@@ -1795,6 +1795,7 @@ $string['proceed'] = 'Proceed';
 $string['profile'] = 'Profile';
 $string['profilenotshown'] = 'This profile description will not be shown until this person is enrolled in at least one course.';
 $string['progress'] = 'Progress';
+$string['pronouns'] = 'Pronouns';
 $string['publicprofile'] = 'Public profile';
 $string['publicsitefileswarning'] = 'Note: files placed here can be accessed by anyone';
 $string['publicsitefileswarning2'] = 'Note: Files placed here can be accessed by anyone who knows (or can guess) the URL. For security reasons, it is recommended that any backup files are deleted immediately after restoring them.';

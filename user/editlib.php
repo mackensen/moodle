@@ -300,6 +300,7 @@ function useredit_shared_definition(&$mform, $editoroptions, $filemanageroptions
     $mform->addElement('select', 'maildisplay', get_string('emaildisplay'), $choices);
     $mform->setDefault('maildisplay', core_user::get_property_default('maildisplay'));
     $mform->addHelpButton('maildisplay', 'emaildisplay');
+    $mform->addElement('text', 'pronouns', get_string('pronouns'), 'maxlength="120" size="21"');
 
     if (get_config('tool_moodlenet', 'enablemoodlenet')) {
         $mform->addElement('text', 'moodlenetprofile', get_string('moodlenetprofile', 'user'), 'maxlength="255" size="30"');

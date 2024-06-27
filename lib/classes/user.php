@@ -78,7 +78,8 @@ class core_user {
         'firstnamephonetic',
         'lastnamephonetic',
         'middlename',
-        'alternatename'
+        'alternatename',
+        'pronouns'
     ];
 
     /** @var int Indicates that user profile view should be prevented */
@@ -727,6 +728,7 @@ class core_user {
         $fields['firstnamephonetic'] = array('type' => PARAM_NOTAGS, 'null' => NULL_ALLOWED);
         $fields['middlename'] = array('type' => PARAM_NOTAGS, 'null' => NULL_ALLOWED);
         $fields['alternatename'] = array('type' => PARAM_NOTAGS, 'null' => NULL_ALLOWED);
+        $fields['pronouns'] = array('type' => PARAM_NOTAGS, 'null' => NULL_ALLOWED);
 
         self::$propertiescache = $fields;
     }

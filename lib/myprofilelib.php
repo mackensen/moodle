@@ -190,6 +190,11 @@ function core_myprofile_navigation(core_user\output\myprofile\tree $tree, $user,
         $tree->add_node($node);
     }
 
+    if (!isset($hiddenfields['pronouns']) && $user->pronouns) {
+        $node = new core_user\output\myprofile\node('contact', 'pronouns', get_string('pronouns'), null, null, $user->pronouns);
+        $tree->add_node($node);
+    }
+
     if (isset($identityfields['address']) && $user->address) {
         $node = new core_user\output\myprofile\node('contact', 'address', get_string('address'), null, null, $user->address);
         $tree->add_node($node);
