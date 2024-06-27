@@ -641,7 +641,7 @@ class data_field_base {     // Base class for Database Field Types (see field/*/
     function image() {
         global $OUTPUT;
 
-        return $OUTPUT->pix_icon('field/' . $this->type, $this->type, 'data');
+        return $OUTPUT->image_icon('icon', $this->type, 'datafield_' . $this->type);
     }
 
     /**
@@ -4121,10 +4121,14 @@ function data_view($data, $course, $cm, $context) {
 }
 
 /**
- * Get icon mapping for font-awesome.
+ * Get the list of deprecated icons.
+ *
+ * @return array with the deprecated key icons.
  */
-function mod_data_get_fontawesome_icon_map() {
+function mod_data_get_deprecated_icons() {
     return [
+        // Deprecated since Moodle 4.6.
+        // See MDL-82313 for refactoring.
         'mod_data:field/checkbox' => 'fa-regular fa-square-check',
         'mod_data:field/date' => 'fa-regular fa-calendar',
         'mod_data:field/file' => 'fa-regular fa-file',
