@@ -82,7 +82,7 @@ if (!isset($SESSION->dataprefs[$data->id])) {
     $SESSION->dataprefs[$data->id]['search'] = '';
     $SESSION->dataprefs[$data->id]['search_array'] = array();
     $SESSION->dataprefs[$data->id]['sort'] = $data->defaultsort;
-    $SESSION->dataprefs[$data->id]['advanced'] = 0;
+    $SESSION->dataprefs[$data->id]['advanced'] = $data->advancedsearchdefault;
     $SESSION->dataprefs[$data->id]['order'] = ($data->defaultsortdir == 0) ? 'ASC' : 'DESC';
 }
 
