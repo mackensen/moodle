@@ -26,6 +26,9 @@ class mod_data_mod_form extends moodleform_mod {
 
         $this->standard_intro_elements(get_string('intro', 'data'));
 
+        $mform->addElement('checkbox', 'advancedsearchdefault', get_string('advancedsearchdefault', 'data'));
+        $mform->addHelpButton('advancedsearchdefault', 'advancedsearchdefault', 'data');
+
         // ----------------------------------------------------------------------
         $mform->addElement('header', 'entrieshdr', get_string('entries', 'data'));
 

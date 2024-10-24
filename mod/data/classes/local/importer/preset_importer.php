@@ -167,7 +167,8 @@ abstract class preset_importer {
             'rssarticles',
             'approval',
             'defaultsortdir',
-            'defaultsort'
+            'defaultsort',
+            'advancedsearchdefault',
         ];
 
         $module = $this->manager->get_instance();

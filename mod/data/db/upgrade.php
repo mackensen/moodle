@@ -41,6 +41,7 @@
 
 function xmldb_data_upgrade($oldversion) {
     global $DB;
+    $dbman = $DB->get_manager();
 
     // Automatically generated Moodle v4.2.0 release upgrade line.
     // Put any upgrade step following this.
@@ -69,6 +70,17 @@ function xmldb_data_upgrade($oldversion) {
 
     // Automatically generated Moodle v4.5.0 release upgrade line.
     // Put any upgrade step following this.
+    if ($oldversion < 2024100701) {
+        // Add advancedsearchdefault field to data table.
+        $table = new xmldb_table('data');
+        $field = new xmldb_field('advancedsearchdefault', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, 0, null);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Data savepoint reached.
+        upgrade_mod_savepoint(true, 2024100701, 'data');
+    }
 
     return true;
 }

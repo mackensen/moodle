@@ -724,6 +724,7 @@ class preset {
             'approval',
             'manageapproved',
             'defaultsortdir',
+            'advancedsearchdefault',
         ];
         $presetxmldata .= "<settings>\n";
         $instance = $this->manager->get_instance();

@@ -39,196 +39,200 @@ class database_summary_exporter extends exporter {
 
     protected static function define_properties() {
 
-        return array(
-            'id' => array(
+        return [
+            'id' => [
                 'type' => PARAM_INT,
-                'description' => 'Database id'),
-            'course' => array(
+                'description' => 'Database id'],
+            'course' => [
                 'type' => PARAM_INT,
-                'description' => 'Course id'),
-            'name' => array(
+                'description' => 'Course id'],
+            'name' => [
                 'type' => PARAM_RAW,
-                'description' => 'Database name'),
-            'intro' => array(
+                'description' => 'Database name'],
+            'intro' => [
                 'type' => PARAM_RAW,
                 'description' => 'The Database intro',
-            ),
-            'introformat' => array(
-                'choices' => array(FORMAT_HTML, FORMAT_MOODLE, FORMAT_PLAIN, FORMAT_MARKDOWN),
+            ],
+            'introformat' => [
+                'choices' => [FORMAT_HTML, FORMAT_MOODLE, FORMAT_PLAIN, FORMAT_MARKDOWN],
                 'type' => PARAM_INT,
                 'default' => FORMAT_MOODLE
-            ),
-            'lang' => array(
+            ],
+            'advancedsearchdefault' => [
+                'type' => PARAM_BOOL,
+                'description' => 'Advanced search enabled by default',
+            ],
+            'lang' => [
                 'type' => PARAM_LANG,
                 'description' => 'Forced activity language',
                 'null' => NULL_ALLOWED,
-            ),
-            'comments' => array(
+            ],
+            'comments' => [
                 'type' => PARAM_BOOL,
                 'description' => 'comments enabled',
-            ),
-            'timeavailablefrom' => array(
+            ],
+            'timeavailablefrom' => [
                 'type' => PARAM_INT,
                 'description' => 'timeavailablefrom field',
-            ),
-            'timeavailableto' => array(
+            ],
+            'timeavailableto' => [
                 'type' => PARAM_INT,
                 'description' => 'timeavailableto field',
-            ),
-            'timeviewfrom' => array(
+            ],
+            'timeviewfrom' => [
                 'type' => PARAM_INT,
                 'description' => 'timeviewfrom field',
-            ),
-            'timeviewto' => array(
+            ],
+            'timeviewto' => [
                 'type' => PARAM_INT,
                 'description' => 'timeviewto field',
-            ),
-            'requiredentries' => array(
+            ],
+            'requiredentries' => [
                 'type' => PARAM_INT,
                 'description' => 'requiredentries field',
-            ),
-            'requiredentriestoview' => array(
+            ],
+            'requiredentriestoview' => [
                 'type' => PARAM_INT,
                 'description' => 'requiredentriestoview field',
-            ),
-            'maxentries' => array(
+            ],
+            'maxentries' => [
                 'type' => PARAM_INT,
                 'description' => 'maxentries field',
-            ),
-            'rssarticles' => array(
+            ],
+            'rssarticles' => [
                 'type' => PARAM_INT,
                 'description' => 'rssarticles field',
-            ),
-            'singletemplate' => array(
+            ],
+            'singletemplate' => [
                 'type' => PARAM_RAW,
                 'description' => 'singletemplate field',
                 'null' => NULL_ALLOWED,
-            ),
-            'listtemplate' => array(
+            ],
+            'listtemplate' => [
                 'type' => PARAM_RAW,
                 'description' => 'listtemplate field',
                 'null' => NULL_ALLOWED,
-            ),
-            'listtemplateheader' => array(
+            ],
+            'listtemplateheader' => [
                 'type' => PARAM_RAW,
                 'description' => 'listtemplateheader field',
                 'null' => NULL_ALLOWED,
-            ),
-            'listtemplatefooter' => array(
+            ],
+            'listtemplatefooter' => [
                 'type' => PARAM_RAW,
                 'description' => 'listtemplatefooter field',
                 'null' => NULL_ALLOWED,
-            ),
-            'addtemplate' => array(
+            ],
+            'addtemplate' => [
                 'type' => PARAM_RAW,
                 'description' => 'addtemplate field',
                 'null' => NULL_ALLOWED,
-            ),
-            'rsstemplate' => array(
+            ],
+            'rsstemplate' => [
                 'type' => PARAM_RAW,
                 'description' => 'rsstemplate field',
                 'null' => NULL_ALLOWED,
-            ),
-            'rsstitletemplate' => array(
+            ],
+            'rsstitletemplate' => [
                 'type' => PARAM_RAW,
                 'description' => 'rsstitletemplate field',
                 'null' => NULL_ALLOWED,
-            ),
-            'csstemplate' => array(
+            ],
+            'csstemplate' => [
                 'type' => PARAM_RAW,
                 'description' => 'csstemplate field',
                 'null' => NULL_ALLOWED,
-            ),
-            'jstemplate' => array(
+            ],
+            'jstemplate' => [
                 'type' => PARAM_RAW,
                 'description' => 'jstemplate field',
                 'null' => NULL_ALLOWED,
-            ),
-            'asearchtemplate' => array(
+            ],
+            'asearchtemplate' => [
                 'type' => PARAM_RAW,
                 'description' => 'asearchtemplate field',
                 'null' => NULL_ALLOWED,
-            ),
-            'approval' => array(
+            ],
+            'approval' => [
                 'type' => PARAM_BOOL,
                 'description' => 'approval field',
-            ),
-            'manageapproved' => array(
+            ],
+            'manageapproved' => [
                 'type' => PARAM_BOOL,
                 'description' => 'manageapproved field',
-            ),
-            'scale' => array(
+            ],
+            'scale' => [
                 'type' => PARAM_INT,
                 'description' => 'scale field',
                 'optional' => true,
-            ),
-            'assessed' => array(
+            ],
+            'assessed' => [
                 'type' => PARAM_INT,
                 'description' => 'assessed field',
                 'optional' => true,
-            ),
-            'assesstimestart' => array(
+            ],
+            'assesstimestart' => [
                 'type' => PARAM_INT,
                 'description' => 'assesstimestart field',
                 'optional' => true,
-            ),
-            'assesstimefinish' => array(
+            ],
+            'assesstimefinish' => [
                 'type' => PARAM_INT,
                 'description' => 'assesstimefinish field',
                 'optional' => true,
-            ),
-            'defaultsort' => array(
+            ],
+            'defaultsort' => [
                 'type' => PARAM_INT,
                 'description' => 'defaultsort field',
-            ),
-            'defaultsortdir' => array(
+            ],
+            'defaultsortdir' => [
                 'type' => PARAM_INT,
                 'description' => 'defaultsortdir field',
-            ),
-            'editany' => array(
+            ],
+            'editany' => [
                 'type' => PARAM_BOOL,
                 'description' => 'editany field (not used any more)',
                 'optional' => true,
-            ),
-            'notification' => array(
+            ],
+            'notification' => [
                 'type' => PARAM_INT,
                 'description' => 'notification field (not used any more)',
                 'optional' => true,
-            ),
-            'timemodified' => array(
+            ],
+            'timemodified' => [
                 'type' => PARAM_INT,
                 'description' => 'Time modified',
                 'optional' => true,
-            ),
-        );
+            ],
+        ];
     }
 
     protected static function define_related() {
-        return array(
+        return [
             'context' => 'context'
-        );
+        ];
     }
 
     protected static function define_other_properties() {
-        return array(
-            'coursemodule' => array(
+        return [
+            'coursemodule' => [
                 'type' => PARAM_INT
-            ),
-            'introfiles' => array(
+            ],
+            'introfiles' => [
                 'type' => external_files::get_properties_for_exporter(),
                 'multiple' => true,
                 'optional' => true,
-            ),
-        );
+            ],
+        ];
     }
 
     protected function get_other_values(renderer_base $output) {
         $context = $this->related['context'];
 
-        $values = array(
+        $values = [
             'coursemodule' => $context->instanceid,
             'introfiles' => external_util::get_area_files($context->id, 'mod_data', 'intro', false, false),
-        );
+        ];
 
         return $values;
     }
@@ -242,7 +246,7 @@ class database_summary_exporter extends exporter {
         return [
             'component' => 'mod_data',
             'filearea' => 'intro',
-            'options' => array('noclean' => true),
+            'options' => ['noclean' => true],
         ];
     }
 }
