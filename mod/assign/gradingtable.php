@@ -1779,7 +1779,7 @@ class assign_grading_table extends table_sql implements renderable {
 
         $assignment = $this->assignment->get_instance();
         if (empty($assignment->blindmarking)) {
-            $result = array_merge($result, array('userid' => SORT_ASC));
+            $result = array_merge($result, [ get_config('assign', 'gradingviewdefaultsort') => SORT_ASC]);
         } else {
             $result = array_merge($result, [
                     'COALESCE(s.timecreated, '  . time()        . ')'   => SORT_ASC,

@@ -365,6 +365,15 @@ if ($ADMIN->fulltree) {
     $setting->set_advanced_flag_options(admin_setting_flag::ENABLED, false);
     $setting->set_locked_flag_options(admin_setting_flag::ENABLED, false);
     $settings->add($setting);
+
+    $options = [
+        'lastname' => get_string('lastname'),
+        'userid' => get_string('userid', 'grades'),
+    ];
+    $name = new lang_string('gradingviewdefaultsort', 'mod_assign');
+    $description = new lang_string('gradingviewdefaultsort_help', 'mod_assign');
+    $setting = new admin_setting_configselect('assign/gradingviewdefaultsort', $name, $description, 'userid', $options);
+    $settings->add($setting);
 }
 
 $ADMIN->add('modassignfolder', $settings);
