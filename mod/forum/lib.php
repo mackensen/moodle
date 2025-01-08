@@ -4814,6 +4814,31 @@ function forum_tp_clean_read_records() {
 }
 
 /**
+ * Identify posts to mark as read and invoke read functions.
+ *
+ * @global object
+ * @global object
+ * @param object $forumrecord
+ * @param object $post
+ * @param string $displaymode
+ * @param array $replies
+ */
+function forum_tp_get_posts_to_mark_read($forumrecord, $post, $displaymode, $replies) {
+    global $CFG, $USER;
+
+    if (forum_tp_is_tracked($forumrecord, $USER) && !$CFG->forum_usermarksread) {
+        if ($displaymode == FORUM_MODE_THREADED) {
+            forum_tp_add_read_record($USER->id, $post->get_id());
+        } else {
+            $postids = array_map(function($post) {
+                return $post->get_id();
+            }, array_merge([$post], array_values($replies)));
+            forum_tp_mark_posts_read($USER, $postids);
+        }
+    }
+}
+
+/**
  * Sets the last post for a given discussion
  *
  * @global object
