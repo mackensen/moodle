@@ -1771,7 +1771,7 @@ class assign_grading_table extends table_sql implements renderable {
     }
 
     /**
-     * Always return a valid sort - even if the userid column is missing.
+     * Always return a valid sort - even if the lastname column is missing.
      * @return array column name => SORT_... constant.
      */
     public function get_sort_columns() {
@@ -1779,7 +1779,7 @@ class assign_grading_table extends table_sql implements renderable {
 
         $assignment = $this->assignment->get_instance();
         if (empty($assignment->blindmarking)) {
-            $result = array_merge($result, array('userid' => SORT_ASC));
+            $result = array_merge($result, array('lastname' => SORT_ASC));
         } else {
             $result = array_merge($result, [
                     'COALESCE(s.timecreated, '  . time()        . ')'   => SORT_ASC,
