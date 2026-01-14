@@ -39,6 +39,7 @@ class user_enrolment_callbacks {
                 instance: $instance,
                 userid: $hook->get_userid(),
                 sendoption: $instance->customint1,
+                userenrolment: $hook->get_userenrolmentinstance(),
                 message: $instance->customtext1,
                 roleid: $hook->roleid,
             );

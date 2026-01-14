@@ -38,6 +38,7 @@ class user_enrolment_callbacks {
             $plugin->send_course_welcome_message_to_user(
                 instance: $instance,
                 userid: $hook->get_userid(),
+                userenrolment: $hook->get_userenrolmentinstance(),
                 sendoption: $instance->customint4,
                 message: $instance->customtext1,
             );
