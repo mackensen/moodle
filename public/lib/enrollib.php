@@ -3638,6 +3638,7 @@ abstract class enrol_plugin {
      * @param stdClass $instance Enrol instance.
      * @param int $userid User ID.
      * @param int $sendoption Send email from constant ENROL_SEND_EMAIL_FROM_*
+     * @param stdClass $userenrolment User enrolment instance.
      * @param null|string $message Message to send to the user.
      * @param int|null $roleid The assigned role ID
      */
@@ -3645,12 +3646,12 @@ abstract class enrol_plugin {
         stdClass $instance,
         int $userid,
         int $sendoption,
+        stdClass $userenrolment,
         ?string $message = '',
         ?int $roleid = null,
     ): void {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/course/lib.php');
-
         $user = core_user::get_user($userid);
         $course = get_course($instance->courseid);
         $context = context_course::instance($course->id);
@@ -3664,6 +3665,7 @@ abstract class enrol_plugin {
         $a->courselink = course_get_url($course)->out();
         $a->coursestartdate = userdate($course->startdate, get_string('strftimedatetime', 'core_langconfig'));
         $a->profileurl = \core\user::get_profile_url($user, $context)->out();
+        $a->timestart = userdate($userenrolment->timestart, get_string('strftimedatetime', 'core_langconfig'));
 
         $placeholders = \core_user::get_name_placeholders($user);
         foreach ($placeholders as $field => $value) {
@@ -3681,6 +3683,7 @@ abstract class enrol_plugin {
                 '{$a->firstname}',
                 '{$a->lastname}',
                 '{$a->courserole}',
+                '{$a->timestart}',
             ];
             $values = [
                 $a->coursename,
@@ -3692,6 +3695,7 @@ abstract class enrol_plugin {
                 $user->firstname,
                 $user->lastname,
                 role_get_name($courserole, $context),
+                $a->timestart,
             ];
             $message = str_replace($placeholders, $values, $message);
             if (strpos($message, '<') === false) {

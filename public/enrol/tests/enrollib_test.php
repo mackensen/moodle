@@ -1860,12 +1860,19 @@ final class enrollib_test extends advanced_testcase {
             '*',
             MUST_EXIST,
         );
+        $userenrolment = $DB->get_record(
+            'user_enrolments',
+            ['enrolid' => $maninstance->id, 'userid' => $student->id],
+            '*',
+            MUST_EXIST,
+        );
 
         $messagesink = $this->redirectMessages();
         $manualplugin->send_course_welcome_message_to_user(
             instance: $maninstance,
             userid: $student->id,
             sendoption: ENROL_SEND_EMAIL_FROM_NOREPLY,
+            userenrolment: $userenrolment,
             message: '',
         );
         $messages = $messagesink->get_messages_by_component_and_type(

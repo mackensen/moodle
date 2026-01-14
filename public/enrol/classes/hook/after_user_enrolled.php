@@ -61,4 +61,13 @@ class after_user_enrolled {
     public function get_enrolinstance(): stdClass {
         return $this->enrolinstance;
     }
+
+    /**
+     * Get the user enrolment instance.
+     *
+     * @return stdClass The user enrolment instance.
+     */
+    public function get_userenrolmentinstance(): stdClass {
+        return $this->userenrolmentinstance;
+    }
 }

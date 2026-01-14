@@ -803,11 +803,18 @@ final class lib_test extends \advanced_testcase {
         // Enrol users.
         $this->getDataGenerator()->enrol_user($teacher1->id, $course->id, 'editingteacher');
         $this->getDataGenerator()->enrol_user($teacher2->id, $course->id, 'editingteacher');
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
         // Get manual plugin.
         $manualplugin = enrol_get_plugin('manual');
         $maninstance = $DB->get_record(
             'enrol',
             ['courseid' => $course->id, 'enrol' => 'manual'],
+            '*',
+            MUST_EXIST,
+        );
+        $userenrolment = $DB->get_record(
+            'user_enrolments',
+            ['enrolid' => $maninstance->id, 'userid' => $student->id],
             '*',
             MUST_EXIST,
         );
@@ -819,6 +826,7 @@ final class lib_test extends \advanced_testcase {
             instance: $maninstance,
             userid: $student->id,
             sendoption: ENROL_SEND_EMAIL_FROM_COURSE_CONTACT,
+            userenrolment: $userenrolment,
             message: '',
         );
         $messages = $messagesink->get_messages_by_component_and_type(
@@ -852,6 +860,7 @@ final class lib_test extends \advanced_testcase {
             instance: $maninstance,
             userid: $student->id,
             sendoption: ENROL_SEND_EMAIL_FROM_COURSE_CONTACT,
+            userenrolment: $userenrolment,
             message: 'Your email address: {$a->email}, your first name: {$a->firstname}, your last name: {$a->lastname}, ' .
                 'your course: {$a->coursename} on {$a->coursestartdate}',
         );
@@ -880,6 +889,7 @@ final class lib_test extends \advanced_testcase {
             instance: $maninstance,
             userid: $student->id,
             sendoption: ENROL_SEND_EMAIL_FROM_NOREPLY,
+            userenrolment: $userenrolment,
             message: 'Welcome to <a href="{$a->courselink}">{$a->coursename}</a>',
         );
         $messages = $messagesink->get_messages_by_component_and_type(
