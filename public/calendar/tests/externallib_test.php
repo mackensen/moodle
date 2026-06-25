@@ -80,7 +80,7 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
             $prop->timeduration = 0;
         }
         if (empty($prop->timesort)) {
-            $prop->timesort = $prop->timestart ;
+            $prop->timesort = $prop->timestart;
         }
         if (empty($prop->type)) {
             $prop->type = CALENDAR_EVENT_TYPE_STANDARD;
@@ -839,7 +839,14 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
         $now = time();
         // Create two events - one for everybody in the course and one only for the first student.
         $event1 = $this->create_calendar_event('Base event', 0, 'due', 0, $now + DAYSECS, $params + ['courseid' => $course->id]);
-        $event2 = $this->create_calendar_event('User event', $user->id, 'due', 0, $now + 2*DAYSECS, $params + ['courseid' => 0, 'groupid' => 0]);
+        $event2 = $this->create_calendar_event(
+            'User event',
+            $user->id,
+            'due',
+            0,
+            $now + 2 * DAYSECS,
+            $params + ['courseid' => 0, 'groupid' => 0]
+        );
 
         // Retrieve course events for the second student - only one "Base event" is returned.
         $this->setUser($user2);
@@ -1086,6 +1093,8 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
 
     /**
      * Test behavior of timesort with overriden events.
+     *
+     * @covers \core_calendar_external::get_calendar_action_events_by_timesort
      */
     public function test_get_calendar_action_events_by_timesort_with_overrides(): void {
         $this->resetAfterTest();
@@ -1107,17 +1116,24 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
 
         $this->getDataGenerator()->enrol_user($user1->id, $course->id);
         $event1 = $this->create_calendar_event('Base event', 0, 'due', 0, $now + DAYSECS, $params + ['courseid' => $course->id]);
-        $event2 = $this->create_calendar_event('User event', $user1->id, 'due', 0, $now + (6*DAYSECS), $params + ['courseid' => 0, 'groupid' => 0]);
+        $event2 = $this->create_calendar_event(
+            'User event',
+            $user1->id,
+            'due',
+            0,
+            $now + (6 * DAYSECS),
+            $params + ['courseid' => 0, 'groupid' => 0]
+        );
 
         // Override falls within the range of the query - one event returned.
         $this->setUser($user1);
-        $result = core_calendar_external::get_calendar_action_events_by_timesort(0, $now + 7*DAYSECS, 0, 20, true);
+        $result = core_calendar_external::get_calendar_action_events_by_timesort(0, $now + 7 * DAYSECS, 0, 20, true);
         $this->assertEquals(1, count($result->events));
         $this->assertEquals('User event', $result->events[0]->name);
-        $this->assertEquals($now + 6*DAYSECS, $result->events[0]->timestart);
+        $this->assertEquals($now + 6 * DAYSECS, $result->events[0]->timestart);
 
         // Override falls outside the range of the query - no events returned.
-        $result = core_calendar_external::get_calendar_action_events_by_timesort(0, $now + 3*DAYSECS, 0, 20, true);
+        $result = core_calendar_external::get_calendar_action_events_by_timesort(0, $now + 3 * DAYSECS, 0, 20, true);
         $this->assertEquals(0, count($result->events));
     }
 
