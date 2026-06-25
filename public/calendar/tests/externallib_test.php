@@ -1093,6 +1093,8 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
 
     /**
      * Test behavior of timesort with overriden events.
+     *
+     * @coversDefaultClass \core_calendar\local\event\strategies\raw_event_retrieval_strategy
      */
     public function test_get_calendar_action_events_by_timesort_with_overrides(): void {
         $this->resetAfterTest();
@@ -1114,17 +1116,24 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
 
         $this->getDataGenerator()->enrol_user($user1->id, $course->id);
         $event1 = $this->create_calendar_event('Base event', 0, 'due', 0, $now + DAYSECS, $params + ['courseid' => $course->id]);
-        $event2 = $this->create_calendar_event('User event', $user1->id, 'due', 0, $now + (6 * DAYSECS), $params + ['courseid' => 0, 'groupid' => 0]);
+        $event2 = $this->create_calendar_event(
+            'User event',
+            $user1->id,
+            'due',
+            0,
+            $now + (6 * DAYSECS),
+            $params + ['courseid' => 0, 'groupid' => 0]
+        );
 
         // Override falls within the range of the query - one event returned.
         $this->setUser($user1);
         $result = core_calendar_external::get_calendar_action_events_by_timesort(0, $now + 7 * DAYSECS, 0, 20, true);
         $this->assertEquals(1, count($result->events));
         $this->assertEquals('User event', $result->events[0]->name);
-        $this->assertEquals($now + 6*DAYSECS, $result->events[0]->timestart);
+        $this->assertEquals($now + 6 * DAYSECS, $result->events[0]->timestart);
 
         // Override falls outside the range of the query - no events returned.
-        $result = core_calendar_external::get_calendar_action_events_by_timesort(0, $now + 3*DAYSECS, 0, 20, true);
+        $result = core_calendar_external::get_calendar_action_events_by_timesort(0, $now + 3 * DAYSECS, 0, 20, true);
         $this->assertEquals(0, count($result->events));
     }
 
