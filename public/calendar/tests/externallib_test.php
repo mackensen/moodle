@@ -835,7 +835,7 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
         $now = time();
         // Create two events - one for everybody in the course and one only for the first student.
         $event1 = $this->create_calendar_event('Base event', 0, 'due', 0, $now + DAYSECS, $params + ['courseid' => $course->id]);
-        $event2 = $this->create_calendar_event('User event', $user->id, 'due', 0, $now + 2*DAYSECS, $params + ['courseid' => 0]);
+        $event2 = $this->create_calendar_event('User event', $user->id, 'due', 0, $now + 2*DAYSECS, $params + ['courseid' => 0, 'groupid' => 0]);
 
         // Retrieve course events for the second student - only one "Base event" is returned.
         $this->setUser($user2);
@@ -843,18 +843,18 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
         $options = array ('siteevents' => true, 'userevents' => true);
         $events = core_calendar_external::get_calendar_events($paramevents, $options);
         $events = external_api::clean_returnvalue(core_calendar_external::get_calendar_events_returns(), $events);
+
         $this->assertEquals(1, count($events['events']));
         $this->assertEquals(0, count($events['warnings']));
         $this->assertEquals('Base event', $events['events'][0]['name']);
 
-        // Retrieve events for the first student - both events are returned.
+        // Retrieve events for the first student - only the override is returned.
         $this->setUser($user);
         $events = core_calendar_external::get_calendar_events($paramevents, $options);
         $events = external_api::clean_returnvalue(core_calendar_external::get_calendar_events_returns(), $events);
-        $this->assertEquals(2, count($events['events']));
+        $this->assertEquals(1, count($events['events']));
         $this->assertEquals(0, count($events['warnings']));
-        $this->assertEquals('Base event', $events['events'][0]['name']);
-        $this->assertEquals('User event', $events['events'][1]['name']);
+        $this->assertEquals('User event', $events['events'][0]['name']);
 
         // Retrieve events by id as a teacher, 'User event' should be returned since teacher has access to this course.
         $this->setUser($teacher);
