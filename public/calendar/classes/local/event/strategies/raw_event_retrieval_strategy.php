@@ -289,14 +289,8 @@ class raw_event_retrieval_strategy implements raw_event_retrieval_strategy_inter
                 $groupconditions = '';
             }
             $condition = "($groupconditions(ev.groupid = 0 AND ev.courseid $incourses AND ev.categoryid = 0))";
-            $subtimesparams = [];
-            if (!empty($subquerytimeconditions)) {
-                $subtimes = $this->subquerytimeconditions("courses", $subquerytimeconditions, $whereparams);
-                $condition .= $subtimes['where'];
-                $subtimesparams = $subtimes['params'];
-            }
             $subqueryconditions[] = $condition;
-            $subqueryparams = array_merge($subqueryparams, $incoursesparams, $subtimesparams);
+            $subqueryparams = array_merge($subqueryparams, $incoursesparams);
         }
 
         // Set subquery filter condition for the categories.
@@ -305,14 +299,8 @@ class raw_event_retrieval_strategy implements raw_event_retrieval_strategy_inter
         } else if (!empty($categories)) {
             list($incategories, $incategoriesparams) = $DB->get_in_or_equal($categories, SQL_PARAMS_NAMED);
             $condition = "(ev.groupid = 0 AND ev.courseid = 0 AND ev.categoryid $incategories)";
-            $subtimesparams = [];
-            if (!empty($subquerytimeconditions)) {
-                $subtimes = $this->subquerytimeconditions("cats", $subquerytimeconditions, $whereparams);
-                $condition .= $subtimes['where'];
-                $subtimesparams = $subtimes['params'];
-            }
             $subqueryconditions[] = $condition;
-            $subqueryparams = array_merge($subqueryparams, $incategoriesparams, $subtimesparams);
+            $subqueryparams = array_merge($subqueryparams, $incategoriesparams);
         }
 
         // Build the WHERE condition for the sub-query.
