@@ -70,13 +70,17 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
             $prop->repeats = $repeats;
         }
         if (empty($prop->timestart)) {
-            $prop->timestart = time();
+            if (empty($timestart)) {
+                $prop->timestart = time();
+            } else {
+                $prop->timestart = $timestart;
+            }
         }
         if (empty($prop->timeduration)) {
             $prop->timeduration = 0;
         }
         if (empty($prop->timesort)) {
-            $prop->timesort = 0;
+            $prop->timesort = $prop->timestart ;
         }
         if (empty($prop->type)) {
             $prop->type = CALENDAR_EVENT_TYPE_STANDARD;
