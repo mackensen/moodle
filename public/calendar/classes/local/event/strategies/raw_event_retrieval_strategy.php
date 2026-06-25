@@ -289,14 +289,8 @@ class raw_event_retrieval_strategy implements raw_event_retrieval_strategy_inter
                 $groupconditions = '';
             }
             $condition = "($groupconditions(ev.groupid = 0 AND ev.courseid $incourses AND ev.categoryid = 0))";
-            $subtimesparams = [];
-            if (!empty($subquerytimeconditions)) {
-                $subtimes = $this->subquerytimeconditions("courses", $subquerytimeconditions, $whereparams);
-                $condition .= $subtimes['where'];
-                $subtimesparams = $subtimes['params'];
-            }
             $subqueryconditions[] = $condition;
-            $subqueryparams = array_merge($subqueryparams, $incoursesparams, $subtimesparams);
+            $subqueryparams = array_merge($subqueryparams, $incoursesparams);
         }
 
         // Set subquery filter condition for the categories.
