@@ -179,9 +179,6 @@ class raw_event_retrieval_strategy implements raw_event_retrieval_strategy_inter
         $whereclause = implode(' AND ', $whereconditions);
 
         // Build SQL subquery and conditions for filtered events based on priorities.
-        $subquerytimeconditions = array_filter($whereconditions, function($condition) {
-            return (strpos($condition, 'time') !== false);
-        });
         $subquerywhere = '';
         $subqueryconditions = [];
         $subqueryparams = [];
@@ -348,37 +345,5 @@ class raw_event_retrieval_strategy implements raw_event_retrieval_strategy_inter
         $events = $DB->get_records_sql($sql, $params, $offset, $limitnum);
 
         return  $events === false ? [] : $events;
-    }
-
-    /**
-     * Returns a query fragment and params, with time constraints applied
-     *
-     * @param  string $prefix
-     * @param  array $conditions
-     * @param  array $params
-     * @return array [<where>, <params>]
-     */
-    protected function subquerytimeconditions(string $prefix, array $conditions, array $params): array {
-        $outwhere = '';
-        $outparams = [];
-        // Most specific to least specific.
-        $timeparams = ['timefromid', 'timefrom3', 'timefrom2', 'timefrom1', 'timefrom', 'timetoid', 'timeto2', 'timeto1', 'timeto'];
-        $whereconditions = [];
-        foreach ($conditions as $condition) {
-            $where = $condition;
-            // This query has been borrowed from the main WHERE clause, so the alias needs to be renamed to match the union.
-            $where = str_replace('e.id', 'ev.id', $where);
-            foreach ($timeparams as $timeparam) {
-                if (isset($params[$timeparam])) {
-                    $where = str_replace(":{$timeparam}", ":{$prefix}{$timeparam}", $where);
-                    $outparams["{$prefix}{$timeparam}"] = $params[$timeparam];
-                }
-            }
-            $whereconditions[] = $where;
-        }
-        if (count($whereconditions) > 0) {
-            $outwhere = ' AND ' . implode(' AND ', $whereconditions);
-        }
-        return ['where' => $outwhere, 'params' => $outparams];
     }
 }
